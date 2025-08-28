@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { Chat, Message } from '../types/chat';
-import { sendMessageToAPI } from '../services/api';
+import { sendMessageToAPI, rateMessageToAPI } from '../services/api';
 import { loadChats, saveChats } from '../storage';
 
 export const useChats = () => {
@@ -58,27 +58,47 @@ export const useChats = () => {
 
       setIsLoading(true);
       try {
-        const response = await sendMessageToAPI(content);
+        const { message, chatHistory } = await sendMessageToAPI(content, activeChat.id || 'testUser');
 
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: response,
-          timestamp: new Date().toISOString(),
-          rating: null,
-          replyTo: userMessage.id,
-        };
+        // If server provided authoritative chat history, sync local chat to it
+        if (chatHistory && chatHistory.messages) {
+          const serverMessages: Message[] = chatHistory.messages.map((m: any) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp,
+            rating: m.rating ?? null,
+            replyTo: m.replyTo ?? null,
+          }));
 
-        const finalChat: Chat = {
-          ...updatedChat,
-          messages: [...updatedChat.messages, botMessage],
-          updatedAt: new Date().toISOString(),
-        };
+          const syncedChat: Chat = {
+            ...updatedChat,
+            messages: serverMessages,
+            updatedAt: new Date().toISOString(),
+          };
 
-        setActiveChat(finalChat);
-        setChats((prev) =>
-          prev.map((chat) => (chat.id === activeChat.id ? finalChat : chat))
-        );
+          setActiveChat(syncedChat);
+          setChats((prev) => prev.map((chat) => (chat.id === activeChat.id ? syncedChat : chat)));
+        } else {
+          // fallback: append local bot message
+          const botMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: message,
+            timestamp: new Date().toISOString(),
+            rating: null,
+            replyTo: userMessage.id,
+          };
+
+          const finalChat: Chat = {
+            ...updatedChat,
+            messages: [...updatedChat.messages, botMessage],
+            updatedAt: new Date().toISOString(),
+          };
+
+          setActiveChat(finalChat);
+          setChats((prev) => prev.map((chat) => (chat.id === activeChat.id ? finalChat : chat)));
+        }
       } catch (error) {
         console.error('Error sending message:', error);
       } finally {
@@ -89,23 +109,25 @@ export const useChats = () => {
   );
 
   const rateMessage = useCallback(
-    (messageId: string, rating: 'like' | 'dislike' | null) => {
+    async (messageId: string, rating: 'like' | 'dislike' | null) => {
       if (!activeChat) return;
 
+      // Update UI optimistically
       const updatedMessages = activeChat.messages.map((m) =>
         m.id === messageId ? { ...m, rating } : m
       );
-
       const updatedChat: Chat = {
         ...activeChat,
         messages: updatedMessages,
         updatedAt: new Date().toISOString(),
       };
-
       setActiveChat(updatedChat);
       setChats((prev) =>
         prev.map((chat) => (chat.id === activeChat.id ? updatedChat : chat))
       );
+
+  // Send to backend
+  await rateMessageToAPI(activeChat.id || 'testUser', messageId, rating);
     },
     [activeChat]
   );

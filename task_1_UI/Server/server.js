@@ -1,17 +1,18 @@
-const express = require('express')//יבוא
-const app = express()//מימוש שרת של מודול אקספרס
-const PORT = 5000//פורט להאזנת השרת
-const bodyParser = require('body-parser')//ספריה להמרת אובייקטים לגייסון - שימושי לנו לאובייקטים שנשלחים בBODY
-app.use(bodyParser.json())//הפונקציה שממירה את האובייקטים לגייסון
-const env=require('dotenv')//ספריה לשימוש בקובץ 
+const express = require('express')
+const app = express()
+
+const bodyParser = require('body-parser')
+app.use(bodyParser.json())
+const env=require('dotenv')
 env.config()
-//מודול שנותן לנו להשתמש בקובץ מערכת למשתני סביבה - dotenv  
-// הגישה למשתנים שרשומים שם - process.env.VARIABLE_NAME
-//מחזיר אובייקט המייצג את תוכן הקובץ 
 
-const jwt = require('jsonwebtoken')//ספריה ליצירת מחרוזת טוקן להצפנת פרטי משתמש לשימוש ברשת
+// Enable CORS for all origins (development only)
+const cors = require('cors');
+app.use(cors());
 
-// ...existing code...
+
+const jwt = require('jsonwebtoken')
+
 
 // Import messengeRoute
 const messengeRoute = require('./Routes/messengeRoute');

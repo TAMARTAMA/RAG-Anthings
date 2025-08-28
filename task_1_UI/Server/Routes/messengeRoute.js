@@ -1,7 +1,12 @@
 const router = require('express').Router();
-const { giveResponse } = require('../Controllers/messengeController');
+const { giveResponse, getHistory, rateMessage } = require('../Controllers/messengeController');
 
-// Only the message response route is used
+// Message response route
 router.post('/add', giveResponse);
+// Chat history route
+router.get('/history', getHistory);
+
+// Rate assistant message
+router.post('/rate', rateMessage);
 
 module.exports = router;
