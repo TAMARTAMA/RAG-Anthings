@@ -14,6 +14,7 @@ function App() {
     sendMessage,
     selectChat,
     deleteChat,
+    rateMessage,
   } = useChats();
 
   const handleStartChat = () => {
@@ -34,11 +35,12 @@ function App() {
         onSelectChat={selectChat}
         onDeleteChat={deleteChat}
       />
-      
+
       <ChatInterface
         activeChat={activeChat}
         isLoading={isLoading}
         onSendMessage={sendMessage}
+        onRateMessage={rateMessage}
       />
     </div>
   );

@@ -7,12 +7,17 @@ interface ChatInterfaceProps {
   activeChat: Chat | null;
   isLoading: boolean;
   onSendMessage: (message: string) => void;
+  onRateMessage: (
+    messageId: string,
+    rating: 'like' | 'dislike' | null
+  ) => void;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   activeChat,
   isLoading,
   onSendMessage,
+  onRateMessage,
 }) => {
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -35,7 +40,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() || isLoading) return;
-    
+
     onSendMessage(inputMessage);
     setInputMessage('');
   };
@@ -89,9 +94,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         ) : (
           <div className="space-y-1">
             {activeChat.messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage
+                key={message.id}
+                message={message}
+                onRate={onRateMessage}
+              />
             ))}
-            
+
             {isLoading && (
               <div className="flex gap-4 p-4">
                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
@@ -104,7 +113,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -124,7 +133,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <Send className="w-5 h-5" />
             )}
           </button>
-          
+
           <textarea
             ref={inputRef}
             value={inputMessage}

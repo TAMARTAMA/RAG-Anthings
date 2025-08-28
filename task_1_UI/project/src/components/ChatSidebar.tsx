@@ -17,11 +17,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onSelectChat,
   onDeleteChat,
 }) => {
-  const formatDate = (date: Date) => {
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return 'היום';
     if (days === 1) return 'אתמול';
     if (days < 7) return `${days} ימים`;
@@ -38,7 +39,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             BOT<span className="text-blue-600">NET</span>
           </h1>
         </div>
-        
+
         <button
           onClick={onNewChat}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors duration-200"
@@ -78,11 +79,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     </p>
                     {chat.messages.length > 0 && (
                       <p className="text-xs text-gray-400 mt-2 line-clamp-2 text-right">
-                        {chat.messages[chat.messages.length - 1].text}
+                        {chat.messages[chat.messages.length - 1].content}
                       </p>
                     )}
                   </div>
-                  
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

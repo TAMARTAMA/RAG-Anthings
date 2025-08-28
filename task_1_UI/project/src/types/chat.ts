@@ -1,14 +1,17 @@
+
 export interface Message {
   id: string;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string; // ISO8601 string
+  rating?: 'like' | 'dislike' | null;
+  replyTo?: string | null;
 }
 
 export interface Chat {
   id: string;
   title: string;
   messages: Message[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
