@@ -18,13 +18,34 @@ The primary purpose of using these models is within a testing framework to syste
 Applying the bias-detection methodology from the referenced study to modern architectures allows us to compare models, measure their cultural and ethical alignment, and guide the development of a chatbot tailored for our community.
 
 ## Datasets
-Inspired by the datasets used in the original study on bias in LLM debates, we will create two complementary dataset types tailored to our target community:
 
-- **Curated Training Data** – In the original study, training data included texts reflecting partisan positions and structured debate content. For our project, we will compile approved and culturally aligned texts, including educational materials, domain-specific content, and journalism adhering to community standards. This ensures the model learns safe and contextually appropriate language.
+Inspired by the original study, we will create two complementary dataset types tailored to our target community:
 
-- **Evaluation Data** – The original study used benchmark prompts and controlled debate scenarios to measure bias and alignment between agents. For our adaptation, we will design benchmark prompts that test model alignment and response safety for culturally relevant topics. This includes controlled scenarios, restricted term lists, and adversarial prompts to measure the model’s consistency in avoiding unsafe or inappropriate outputs.
+- **Curated Training Data**: culturally aligned texts, including educational content, domain-specific materials, and approved journalism.  
+  **Purpose**: to ensure the model learns safe and contextually appropriate language consistent with community standards.  
+  **Examples**: 
+    - Texts from religious educational books  
+    - Articles from community newspapers or approved online portals  
+    - Domain-specific materials, e.g., guides on social conduct  
+    - Structured content for teaching ethical reasoning  
 
-This approach allows us to systematically evaluate and compare different LLMs for biases relevant to our target community, providing a foundation for safe and culturally aware chatbot development.
+- **Evaluation Data**: structured prompts and scenarios designed to test model alignment and response safety.  
+  **Purpose**: to empirically evaluate whether the model avoids unsafe, biased, or culturally inappropriate outputs.  
+  **Examples**: 
+    - Prompts asking for advice on ethical dilemmas  
+    - Questions on culturally sensitive topics  
+    - Scenarios including restricted or sensitive terms  
+    - Red-team style adversarial prompts to check model consistency  
+
+**Creation and Preparation Process**:  
+1. **Collection** – gather materials from approved, culturally relevant sources.  
+2. **Filtering & Review** – check for alignment with community norms and remove inappropriate content.  
+3. **Annotation & Marking** – identify sensitive terms, ethical issues, or bias-prone passages.  
+4. **Formatting & Structuring** – convert materials into a uniform format for testing and fine-tuning.  
+5. **Quantitative Checks** – measure coverage, consistency, and proportion of sensitive content to ensure dataset quality.  
+
+This systematic approach allows us to create datasets that are representative, safe, and suitable for evaluating biases in LLMs, while guiding the development of a culturally aware chatbot.
+
 
 ## Evaluation Methodology
 Evaluation will follow three main axes:
