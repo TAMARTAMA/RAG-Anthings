@@ -16,4 +16,21 @@
    npm i
    npm start
 3. The server will start and listen for requests from the UI.
+
+## .env file (required)
+
+Before running the server, you must create a `.env` file in the root directory of the project.  
+This file should contain the following environment variables:
+
+PORT=5000
+SECRET_KEY=your-secret-hash
+
+### Explanation
+- **PORT** – The port where the server will run (default: `5000`).  
+- **SECRET_KEY** – A secret hash string used for encryption/signatures. Make sure to set a strong, secure value.  
+
+### Connecting to the server
+Once the `.env` file is created and the server is running, you can connect at:  
+http://localhost:<PORT>
+where `<PORT>` is the value you defined in the `.env` file.
   
