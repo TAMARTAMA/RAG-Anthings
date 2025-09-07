@@ -1,36 +1,77 @@
 # Moptimizer
 
-## To run the UI
-1. Open the directory `task_1_UI/project`
-2. IDE: VSCode
-3. In the terminal, run:
-   ```bash
+A small chat stack composed of:
+- **Server**: Node/Express API that talks to a **FastAPI** model server and stores chat history in a JSON file.
+- **Client**: Vite + React frontend.
+
+---
+
+## 1) Project Layout
+task_1_UI/
+├─ Server/ # Node/Express API
+│ ├─ server.js
+│ ├─ Routes/
+│ └─ Controllers/
+│
+└─ project/ # Vite + React client
+├─ index.html
+├─ src/
+└─ vite.config.ts
+
+## 2) Requirements
+
+- **Node.js** v18+ and npm
+- **Python 3.10+** (for the model server)
+- A running **FastAPI model server** (default: `http://127.0.0.1:8001/generate`)
+
+> If the model server runs on a different host or port, set `MODEL_URL` accordingly (see Environment).
+
+---
+
+## 3) Environment Variables
+
+Create your own `.env` files from the examples below. **Do not commit real `.env` files**—commit only the `*.example` files.
+
+### Server (`task_1_UI/Server/.env`)
+```env
+   PORT=5000
+   MODEL_URL=http://127.0.0.1:8001/generate
+   Optional future use:
+   SECRET=change-me```
+   There is an example file at:
+   task_1_UI/Server/.env.example
+   
+### Client (task_1_UI/project/.env)
+   Only variables starting with VITE_ are exposed to the browser.
+   Development (local or via SSH tunnel):
+   VITE_API_BASE=http://localhost:5000
+   Production (public IP / domain):
+   VITE_API_BASE=http://YOUR_SERVER_IP_OR_DOMAIN:5000
+   There is an example file at:
+   task_1_UI/project/.env.example
+## 4) Running the Servers
+4.1 Run the Node API (development)
+   cd task_1_UI/Server
+   npm i
+   NODE_ENV=development npm start
+   Node will listen on http://0.0.0.0:5000 (or the PORT you set).
+4.2 Run the client (development)
+   cd task_1_UI/project
    npm i
    npm run dev
-4. After running npm run dev, a URL will appear in the  terminal. Copy this URL and open it in your browser to access the UI.
+   Open the printed URL (commonly http://localhost:5173).
+5) Troubleshooting
 
-## To run the server
-1. Open the directory `task_1_UI/server`
-2. In the terminal, run:
-   ```bash
-   npm i
-   npm start
-3. The server will start and listen for requests from the UI.
+Frontend hits localhost by mistake: Ensure VITE_API_BASE points to your Node server (IP/domain).
 
-## .env file (required)
+CORS errors in dev: Node enables cors() in development. Prefer serving client and API from the same origin in production.
 
-Before running the server, you must create a `.env` file in the root directory of the project.  
-This file should contain the following environment variables:
+Empty reply from server: Usually a crash/unhandled error in Node. Run node server.js in the foreground and watch logs.
 
-PORT=5000
-SECRET_KEY=your-secret-hash
+Model returns “repetitive English text”:
 
-### Explanation
-- **PORT** – The port where the server will run (default: `5000`).  
-- **SECRET_KEY** – A secret hash string used for encryption/signatures. Make sure to set a strong, secure value.  
+Lower temperature (e.g., 0.2–0.4) and top_k (e.g., 40–60).
 
-### Connecting to the server
-Once the `.env` file is created and the server is running, you can connect at:  
-http://localhost:<PORT>
-where `<PORT>` is the value you defined in the `.env` file.
-  
+Make sure your prompt is exactly the user’s text (not an ID).
+
+Use a random seed for more variation or a fixed seed for determinism.
