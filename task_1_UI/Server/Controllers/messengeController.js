@@ -1,8 +1,15 @@
+
+// /home/ext-z/Moptimizer/task_1_UI/Server/Controllers/messengeController.js
+// Keeps your original functions; only switches the assistant response to call the Python FastAPI model.
+// Requires: npm install node-fetch@2
+
 const fs = require('fs');
 const path = require('path');
-const chatsPath = path.join(__dirname, '../../project/chats.json');
+const fetch = require('node-fetch');
 
-// Simulated responses
+const chatsPath = path.resolve(__dirname, '../../project/chats.json');
+
+// Keep your original simulated responses array as a fallback
 const responses = [
   'Hello, how can I help you?',
   'This is a simulated response.',
@@ -23,36 +30,89 @@ function saveChats(chats) {
   fs.writeFileSync(chatsPath, JSON.stringify(chats, null, 2), 'utf-8');
 }
 
-const giveResponse = (req, res) => {
-  try {
-    const { userId, requset } = req.body;
-    if (!userId || requset === undefined)
-      return res.status(400).json({ error: "Missing fields" });
+const MODEL_URL = process.env.MODEL_URL || 'http://127.0.0.1:8001/generate';
 
-    // Load chat history
+// === Only this function is altered to call the model; the rest stays the same ===
+const giveResponse = async (req, res) => {
+  try {
+    const { userId, requset } = req.body; // משאיר את השם המקורי "requset"
+    if (!userId || requset === undefined) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+
+    // 1) נירמול קלט: תמיד מחרוזת
+    let userText = typeof requset === 'string' ? requset : String(requset ?? '');
+    userText = userText.trim();
+    
+
+    // (אופציונלי) אם שדה הקלט הוא רק מספר ארוך (10–16 ספרות) — סביר שזה ID בטעות
+    // לא חוסם, רק מתעד לוג כדי שתדעי לזהות
+    if (/^\d{10,16}$/.test(userText)) {
+      console.warn('[warn] received numeric-only input (looks like an ID):', userText);
+    }
+
+    // 2) טעינת היסטוריה
     let chats = loadChats();
     let chat = chats.find(c => c.userId === userId);
     if (!chat) {
-      chat = {
-        userId,
-        messages: []
-      };
+      chat = { userId, messages: [] };
       chats.push(chat);
     }
 
-    // Add user message
+    // 3) הוספת הודעת משתמש (שומר את הטקסט, לא מזהה)
     const userMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: requset,
+      content: userText,
       timestamp: new Date().toISOString(),
     };
     chat.messages.push(userMessage);
 
-    // Add assistant message
-    const responseMsg = responses[Math.floor(Math.random() * responses.length)];
+    // 4) קריאה למודל (FastAPI)
+    let responseMsg;
+    try {
+      const body = {
+        prompt: userText,
+        num_samples: 1,
+        max_new_tokens: 120,
+        temperature: 0.4,  // מעט "קר" לשיפור קוהרנטיות
+        top_k: 60,
+        seed: 0,
+        seed_increment: true
+      };
 
-    // Add assistant message with rating=null by default
+      const resp = await fetch(MODEL_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        timeout: 60000
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`Model server error ${resp.status}: ${errText}`);
+      }
+
+      const data = await resp.json();
+      const rawText = data?.completions?.[0] ?? '';
+
+      // 5) ניקוי מספר/טיימסטמפ שמופיע בתחילת תשובת המודל
+      //    (10–16 ספרות בתחילת הטקסט + רווח/שורה חדשה)
+      const cleaned = String(rawText)
+        .replace(/^\s*\d{10,16}\s*(\r?\n)?/, '')
+        .trim();
+
+      if (cleaned !== rawText) {
+        console.log('[cleaned-leading-id]', rawText.slice(0, 40), '=>', cleaned.slice(0, 40));
+      }
+
+      responseMsg = cleaned || responses[Math.floor(Math.random() * responses.length)];
+    } catch (e) {
+      console.error('Model call failed:', e.message);
+      responseMsg = responses[Math.floor(Math.random() * responses.length)]; // נפילה -> fallback
+    }
+
+    // 6) הוספת הודעת הסייען (עם תוכן נקי)
     const assistantMessage = {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
@@ -61,25 +121,14 @@ const giveResponse = (req, res) => {
       replyTo: userMessage.id,
       rating: null
     };
-  chat.messages.push(assistantMessage);
+    chat.messages.push(assistantMessage);
 
-  // Save updated chats
+    // 7) שמירה והחזרה ללקוח
     saveChats(chats);
-
-    res.status(200).json({ message: responseMsg });
+    return res.status(200).json({ message: responseMsg });
   } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-const getHistory = (req, res) => {
-  try {
-    const userId = req.query.userId;
-    if (!userId) return res.status(400).json({ error: 'Missing userId' });
-    const chats = loadChats();
-    const chat = chats.find(c => c.userId === userId);
-    res.status(200).json(chat ? chat : { userId, messages: [] });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('giveResponse error:', error);
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -111,6 +160,17 @@ const rateMessage = (req, res) => {
     assistantReply.rating = rating;
     saveChats(chats);
     res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+const getHistory = (req, res) => {
+  try {
+    const userId = req.query.userId;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    const chats = loadChats();
+    const chat = chats.find(c => c.userId === userId);
+    res.status(200).json(chat ? chat : { userId, messages: [] });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
