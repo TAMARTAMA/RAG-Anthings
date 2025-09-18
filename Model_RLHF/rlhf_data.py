@@ -1,5 +1,3 @@
-# rlhf_data_fallback.py
-# pip install -U datasets pyarrow pandas
 
 import os
 import json
@@ -10,7 +8,7 @@ import pandas as pd
 from datasets import load_dataset, Dataset, DatasetDict
 
 OUT_DIR = Path("data/hh-rlhf")
-LOCAL_DIR = Path("local_hh_rlhf")  # שימי כאן את train.jsonl.gz / test.jsonl.gz אם הורדת מקומית
+LOCAL_DIR = Path("local_hh_rlhf")  
 
 def to_jsonl(path: Path, rows: Iterable[Dict[str, Any]]):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -54,7 +52,6 @@ def build_toy_dataset() -> DatasetDict:
         {"prompt": "Give a tip for studying.", "chosen": "Practice daily and review mistakes.",
          "rejected": "Stop learning."}
     ]
-    # נשמור ל-local כדי שגם הריצות הבאות יעבדו
     LOCAL_DIR.mkdir(parents=True, exist_ok=True)
     to_jsonl(LOCAL_DIR / "train.jsonl", toy_train)
     to_jsonl(LOCAL_DIR / "test.jsonl", toy_test)
@@ -74,7 +71,6 @@ def build_pairwise_row(row: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 def main():
-    # 1) ניסוי רשת → 2) מקומי → 3) דאטה זעיר
     ds = try_load_remote()
     if ds is None:
         ds = try_load_local()
@@ -84,14 +80,12 @@ def main():
     print(ds)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # הדפסה קצרה ודוגמאות
     for split_name, split in ds.items():
         print(f"\n=== {split_name} ===")
         print(split)
         print("Columns:", split.column_names)
         print("Example:", {k: split[0][k] for k in split.column_names})
 
-    # שמירה Parquet + JSONL גולמי
     for split_name, split in ds.items():
         split_dir = OUT_DIR / split_name
         split_dir.mkdir(parents=True, exist_ok=True)
@@ -103,13 +97,11 @@ def main():
         print(f"Saved {split_dir / f'{split_name}.parquet'}")
         print(f"Saved {split_dir / f'{split_name}.jsonl'}")
 
-    # יצירת גרסת pairwise
     for split_name, split in ds.items():
         pairwise_rows = (build_pairwise_row(split[i]) for i in range(len(split)))
         to_jsonl(OUT_DIR / split_name / f"{split_name}.pairwise.jsonl", pairwise_rows)
         print(f"Saved {OUT_DIR / split_name / f'{split_name}.pairwise.jsonl'}")
 
-    # גרסת like/dislike שטוחה
     for split_name, split in ds.items():
         flat_rows = []
         for i in range(len(split)):
