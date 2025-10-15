@@ -1,5 +1,0 @@
-{
-  "model_dir": "/home/ruth/SERVER_shared/Models/gemma-3-4b-it",
-  "dtype": "float32",
-  "default_top_k": 20
-}
