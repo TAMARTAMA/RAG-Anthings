@@ -1,0 +1,10 @@
+{
+  "model_dir": "/home/ruth/SERVER_shared/Models/gemma-3-4b-it",
+  "dtype": "float32",
+  "device_map": "cpu",
+  "system_prompt": "You are a helpful and concise assistant.",
+  "default_max_new_tokens": 8,
+  "default_temperature": 0.0,
+  "default_top_p": 1.0,
+  "default_do_sample": false
+}
