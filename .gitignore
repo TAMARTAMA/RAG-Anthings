@@ -1,1 +1,5 @@
+/Models
 Models/
+*.json
+.venv/
+__pycache__
