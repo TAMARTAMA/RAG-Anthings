@@ -2,6 +2,7 @@ import asyncio, time, argparse, json, statistics
 import aiohttp
 
 def pct(vals, p):
+    """Return the p-th percentile of a numeric list (e.g., p=0.95 for 95th)."""
     if not vals: return 0.0
     vals = sorted(vals)
     k = max(0, min(len(vals)-1, int(p * (len(vals)-1))))
@@ -32,7 +33,7 @@ async def main():
     ap.add_argument("--rate", type=int, default=100, help="target QPS")
     ap.add_argument("--seconds", type=int, default=20)
     ap.add_argument("--concurrency", type=int, default=16)
-    ap.add_argument("--max-new-tokens", type=int, default=4)
+    ap.add_argument("--max-new-tokens", type=int, default=1024)
     ap.add_argument("--warmup", type=int, default=3)
     args = ap.parse_args()
 
@@ -63,13 +64,13 @@ async def main():
                 ok_count += 1
                 latencies.append(dt)
 
-        # משגר בקצב היעד
+        # Launch requests at target rate
         while time.perf_counter() < end:
             asyncio.create_task(fire())
             sent += 1
             await asyncio.sleep(1 / max(1, args.rate))
 
-        # ניקוי משימות
+        # cleaning tasks
         pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         while pending:
             await asyncio.sleep(0.05)
@@ -92,3 +93,11 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+#run
+# uvicorn servers.Moptimizer.LLM_server.server:app --host 0.0.0.0 --port 8013
+
+# curl -s http://127.0.0.1:8013/health
+# curl -s -X POST http://127.0.0.1:8013/generate \
+#   -H 'Content-Type: application/json' \
+#   -d '{"prompt":"Say hi in one word","max_new_tokens":4,"temperature":0.0}'

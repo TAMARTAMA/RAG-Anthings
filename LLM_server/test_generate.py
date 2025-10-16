@@ -49,3 +49,7 @@ def test_generate_small_concurrency(client):
         results = list(ex.map(one, range(3)))
 
     assert all(r.status_code == 200 for r in results)
+
+    #run
+    #PYTHONPATH=. pytest -q servers/Moptimizer/LLM_server/test_generate.py
+

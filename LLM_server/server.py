@@ -3,15 +3,14 @@ from pydantic import BaseModel
 from transformers import AutoTokenizer, Gemma3ForConditionalGeneration
 from pathlib import Path
 import torch, json, time
-
 # ===== Load Config =====
 CFG_PATH = Path(__file__).with_name("config.json")
 cfg = json.loads(CFG_PATH.read_text(encoding="utf-8"))
 
 MODEL_DIR = cfg["model_dir"]
-DTYPE = {"float32": torch.float32, "bfloat16": torch.bfloat16}.get(cfg.get("dtype", "float32"), torch.float32)
+DTYPE = torch.bfloat16
 DEVICE_MAP = cfg.get("device_map", "cpu")
-SYSTEM_PROMPT = cfg.get("system_prompt", "You are a helpful assistant.")
+SYSTEM_PROMPT = "You are a helpful assistant."
 
 # ===== FastAPI Init =====
 app = FastAPI(title="LLM Server (Gemma 3 4B IT)")
@@ -21,9 +20,7 @@ _tok = None
 class GenerateIn(BaseModel):
     prompt: str
     max_new_tokens: int = cfg.get("default_max_new_tokens", 200)
-    temperature: float = cfg.get("default_temperature", 0.2)
-    top_p: float = cfg.get("default_top_p", 1.0)
-    do_sample: bool = cfg.get("default_do_sample", False)
+    temperature: float = cfg.get("default_temperature", 0.0)  # 0 = deterministic
 
 class GenerateOut(BaseModel):
     text: str
@@ -33,12 +30,12 @@ class GenerateOut(BaseModel):
 @app.on_event("startup")
 def load_model():
     global _model, _tok
-    print(f"[LOAD] Loading model from {MODEL_DIR} ...")
+    print(f"[LOAD] Loading model from {MODEL_DIR} ...", end="", flush=True)
     _model = Gemma3ForConditionalGeneration.from_pretrained(
         MODEL_DIR, local_files_only=True, device_map=DEVICE_MAP, dtype=DTYPE
     ).eval()
     _tok = AutoTokenizer.from_pretrained(MODEL_DIR)
-    print("[READY] Model loaded successfully.")
+    print(" done.")
 
 @app.get("/health")
 def health():
@@ -62,9 +59,8 @@ def generate(req: GenerateIn):
             attention_mask=(inputs != _tok.pad_token_id).long() if _tok.pad_token_id else None,
             max_new_tokens=req.max_new_tokens,
             temperature=req.temperature,
-            top_p=req.top_p,
-            do_sample=req.do_sample,
-        )
+            )
+
 
     gen_ids = out[0][inputs.shape[-1]:]
     text = _tok.decode(gen_ids, skip_special_tokens=True).strip()
