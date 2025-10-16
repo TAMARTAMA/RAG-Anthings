@@ -19,7 +19,7 @@ _tok = None
 
 class GenerateIn(BaseModel):
     prompt: str
-    max_new_tokens: int = cfg.get("default_max_new_tokens", 200)
+    max_new_tokens: int = cfg.get("default_max_new_tokens", 1024)
     temperature: float = cfg.get("default_temperature", 0.0)  # 0 = deterministic
 
 class GenerateOut(BaseModel):
