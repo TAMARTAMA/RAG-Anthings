@@ -1,12 +1,11 @@
 {
-  "model_dir": "/home/tamar/SERVER_shared/Models/gemma-3-4b-it",
-  "chat_dir": "./Chats",
+
+  "chat_dir": "all_chats",
   "server": {
     "host": "0.0.0.0",
     "port": 8002
   },
-  "generation": {
-    "max_new_tokens": 64,
-    "do_sample": false
+  "remote_server": {
+    "url": "http://127.0.0.1:8014/generate"
   }
 }
