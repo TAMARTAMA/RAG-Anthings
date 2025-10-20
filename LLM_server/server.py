@@ -27,6 +27,19 @@ class GenerateOut(BaseModel):
     tokens: int
     duration_s: float
 
+# --- Schemas for /probabilities ---
+class ProbabilitiesIn(BaseModel):
+    messages: list[dict]
+    temperature: float = 1.0
+
+class TokenProb(BaseModel):
+    token: str
+    prob: float
+
+class ProbabilitiesOut(BaseModel):
+    items: list[TokenProb]
+
+
 @app.on_event("startup")
 def load_model():
     global _model, _tok
@@ -65,3 +78,36 @@ def generate(req: GenerateIn):
     text = _tok.decode(gen_ids, skip_special_tokens=True).strip()
     dur = time.time() - start
     return GenerateOut(text=text, tokens=gen_ids.numel(), duration_s=dur)
+
+# --- Endpoint: full next-token distribution as [{token, prob}] ---
+@app.post("/probabilities", response_model=ProbabilitiesOut)
+def probabilities(req: ProbabilitiesIn):
+    if not isinstance(req.messages, list) or len(req.messages) == 0:
+        raise HTTPException(status_code=400, detail="messages must be a non-empty list")
+
+    # Build model inputs using the same chat template as /generate
+    inputs = _tok.apply_chat_template(
+        req.messages, add_generation_prompt=True, return_tensors="pt"
+    ).to(_model.device)
+
+    # Temperature safeguard (avoid division by zero)
+    t = max(1e-6, float(req.temperature))
+
+    with torch.inference_mode():
+        logits = _model(input_ids=inputs).logits[:, -1, :]   # [1, vocab_size]
+        probs = torch.softmax(logits / t, dim=-1)[0]         # [vocab_size]
+
+    V = probs.shape[0]
+    ids = list(range(V))
+
+    # Try direct ID->token conversion; may produce None/"" for some IDs
+    tokens = _tok.convert_ids_to_tokens(ids)
+
+    # Fill any missing/empty entries via decode; if still empty -> "<id:N>"
+    for i, tok in enumerate(tokens):
+        if tok is None or tok == "":
+            fallback = _tok.decode([i], skip_special_tokens=False)
+            tokens[i] = fallback if fallback not in (None, "") else f"<id:{i}>"
+
+    items = [{"token": tokens[i], "prob": float(probs[i])} for i in range(V)]
+    return ProbabilitiesOut(items=items)
