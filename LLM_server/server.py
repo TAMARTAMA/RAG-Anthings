@@ -63,5 +63,5 @@ def generate(req: GenerateIn):
 
     gen_ids = out[0][inputs.shape[-1]:]
     text = _tok.decode(gen_ids, skip_special_tokens=True).strip()
-    dur = round(time.time() - start, 3)
+    dur = time.time() - start
     return GenerateOut(text=text, tokens=gen_ids.numel(), duration_s=dur)

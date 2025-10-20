@@ -20,7 +20,7 @@ def test_generate_basic(client):
             {"role": "user", "content": [{"type": "text", "text": "Say hi in one word."}]}
         ],
         "max_new_tokens": 8,
-        "temperature": 0.0001
+        "temperature": 1.0
     }
     r = client.post("/generate", json=payload)
     assert r.status_code == 200

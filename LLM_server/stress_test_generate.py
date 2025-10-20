@@ -44,7 +44,7 @@ async def main():
             {"role": "user", "content": [{"type": "text", "text": "Reply with exactly: OK"}]}
         ],
         "max_new_tokens": args.max_new_tokens,
-        "temperature": 0.0001,  # >0 to satisfy transformers validation
+        "temperature": 1.0,  # >0 to satisfy transformers validation
     }
 
     sem = asyncio.Semaphore(args.concurrency)

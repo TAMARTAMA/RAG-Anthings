@@ -29,10 +29,15 @@ Moptimizer/
    ```
 3. Example requests:
    ```bash
-   curl http://127.0.0.1:8013/health
-   curl -X POST http://127.0.0.1:8013/generate \
-     -H 'Content-Type: application/json' \
-     -d '{"prompt":"Say hi in one word"}'
+  curl -s -X POST http://127.0.0.1:8013/generate \
+    -H 'Content-Type: application/json' \
+    -d '{
+          "messages": [
+            { "role": "user", "content": [ { "type": "text", "text": "Say hi in one word." } ] }
+          ],
+          "max_new_tokens": 8,
+          "temperature": 0.0001
+        }'
    ```
 
 ---
