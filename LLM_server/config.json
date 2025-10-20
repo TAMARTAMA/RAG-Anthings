@@ -1,0 +1,8 @@
+{
+  "model_dir": "/srv/python_envs/shared_env/B/gemma-3-4b-it",
+  "device_map": "auto",
+  "default_max_new_tokens": 1024,
+  "default_temperature": 1.0,
+  "model_dir1": "/home/ruth/SERVER_shared/Models/gemma-3-4b-it"
+
+}
