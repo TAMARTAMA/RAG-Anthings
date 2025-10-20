@@ -25,11 +25,11 @@ Moptimizer/
 1. Verify `config.json` contains a valid local model path.
 2. Start the server:
    ```bash
-   uvicorn Moptimizer.LLM_server.server:app --host 0.0.0.0 --port 8013
+   uvicorn Moptimizer.LLM_server.server:app --host 192.168.50.3 --port 8013
    ```
 3. Example requests:
    ```bash
-  curl -s -X POST http://127.0.0.1:8013/generate \
+  curl -s -X POST http://192.168.50.3:8013/generate \
     -H 'Content-Type: application/json' \
     -d '{
           "messages": [
