@@ -17,19 +17,50 @@ PORT_SERVER = cfg["server"]["port"]
 HOST_SERVER = cfg["server"]["host"]
 
 # CHATS_DIR = cfg["chat_dir"]
-SERVER_MODEL_URL=cfg["remote_server"]["url"]
-
+SERVER_MODEL_URL=cfg["remote_server"]["url_LLM"]
+SERVER_SEARCH_URL=cfg["remote_server"]["url_search:"]
 
 app = FastAPI(title="Main Server Chatbot")
 
 def process_asking(question: str):
-    keywords = send_data_to_server(SERVER_MODEL_URL, question, system_prompt_keywords)
+    keywords = send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_keywords)
+    # send keywords to server search split the keywords string to list
+    keywords_list = keywords.get("text", "").split(", ")
+    if not keywords_list or keywords_list == [""]:  # if no keywords found
+        return "לא נמצאו מילות מפתח מתאימות לשאלה שלך."
+    
+    search_results = send_data_to_server_search(SERVER_SEARCH_URL, keywords_list)
     print("Received keywords from remote server:", keywords)
-    return keywords
+    print("Sending keywords to remote server search:", keywords_list)
+    print("Received search results from remote server:", search_results)
+    #TODO add summury to docs before sending to LLM
+    # prepare docs text
+    docs_text = "\n\n".join(
+        [f"[{i+1}] Title: {r['title']}" for i, r in enumerate(search_results.get("results", []))]
+    )
+    system_prompt_bm25_q_filled = system_prompt_bm25_q.format(docs=docs_text)
+    return send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_bm25_q_filled)
+     
 
+def send_data_to_server_search(url: str, keywords: list):
+    payload = {
+        "query": keywords
+    }
 
+    headers = {"Content-Type": "application/json"}
 
-def send_data_to_server(url: str, question: str,system_prompt: str):
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
+
+        try:
+            return response.json()
+        except ValueError:
+            return response.text
+
+    except requests.exceptions.RequestException as e:
+        return {"error": f"שגיאה בשליחת הבקשה: {str(e)}"}
+
+def send_data_to_server_LLM(url: str, question: str,system_prompt: str):
     
     payload = {
         "messages" : [
@@ -46,14 +77,14 @@ def send_data_to_server(url: str, question: str,system_prompt: str):
                         ]
                 },
         ],
-        "max_new_tokens": 8,
-        "temperature": 0.0001
+    
     }
 
     headers = {"Content-Type": "application/json"}
 
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
+
 
         try:
             return response.json()

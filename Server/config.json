@@ -6,6 +6,7 @@
     "port": 8002
   },
   "remote_server": {
-    "url": "http://127.0.0.1:8014/generate"
+  "url_LLM": "http://192.168.50.3:8013/generate",
+  "url_search:": "http://192.168.50.3:8000/search"
   }
 }

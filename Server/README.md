@@ -77,14 +77,21 @@ pip install -r requirements.txt
 
 3) הרצה:
 ```bash
+# יש לוודא שהשרת http://127.0.0.1:8014/generate  רץ
+#בתקיה /home/tamar/B/Moptimizer
+uvicorn Moptimizer.LLM_server.server:app --host 192.168.50.3 --port 8013
+#בתקיה /home/tamar/B/data/KG/search
+uvicorn main:app --host 0.0.0.0 --port 8000
+#אח"כ יש להריץ 
+# בתקיה /home/tamar/B/code/SERVER/Server
 python main.py
 # או דרך uvicorn
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+run uvicorn server_main:app --host 0.0.0.0 --port 8002 --reload
 ```
 
 4) עמודי שירות:
-- Swagger: `http://localhost:8000/docs`
-- OpenAPI JSON: `http://localhost:8000/openapi.json`
+- Swagger: `http://localhost:8002/docs`
+- OpenAPI JSON: `http://localhost:8002/openapi.json`
 
 > אם מריצים עם `uvicorn main:app`, הפרמטרים בשורת הפקודה גוברים על ה־config.
 
