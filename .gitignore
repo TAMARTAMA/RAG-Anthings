@@ -6,3 +6,15 @@ __pycache__
 question_emmbading/
 servers/
 Reserach_Q_D_expantion/
+# Node
+node_modules/
+npm-debug.log
+package-lock.json
+
+# Environment
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.pyc

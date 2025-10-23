@@ -1,7 +1,7 @@
-// Rate an assistant message (like/dislike/null)
+const PORT_MAIN_SERVER = "http://localhost:8002/"
 export async function rateMessageToAPI(userId: string, messageId: string, rating: 'like' | 'dislike' | null) {
   try {
-    const response = await fetch('http://localhost:5000/api/message/rate', {
+    const response = await fetch(PORT_MAIN_SERVER+'api/message/rate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -19,25 +19,26 @@ export async function sendMessageToAPI(
   userId: string
 ): Promise<{ message: string; chatHistory?: any }> {
   try {
-    const response = await fetch('http://localhost:5000/api/message/add', {
+    const response = await fetch('http://localhost:8002/api/message/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ requset: message, userId }),
+      body: JSON.stringify({ request: message, userId }),
     });
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.error || 'Failed to send message');
     }
-    // Optionally, fetch the full chat history after sending a message
-    let chatHistory;
-    try {
-      const historyRes = await fetch(`http://localhost:5000/api/message/history?userId=${encodeURIComponent(userId)}`);
-      chatHistory = await historyRes.json();
-    } catch {}
-    return { message: data.message || 'Message sent!', chatHistory };
+    
+    return { message: data.answer || 'Message sent!' };
   } catch (error: any) {
     return { message: `Error: ${error.message}` };
   }
 }
+// Optionally, fetch the full chat history after sending a message
+    // let chatHistory;
+    // try {
+    //   const historyRes = await fetch(PORT_MAIN_SERVER+`api/message/history?userId=${encodeURIComponent(userId)}`);
+    //   chatHistory = await historyRes.json();
+    // } catch {}

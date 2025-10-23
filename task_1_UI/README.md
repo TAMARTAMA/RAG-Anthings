@@ -75,3 +75,17 @@ Lower temperature (e.g., 0.2–0.4) and top_k (e.g., 40–60).
 Make sure your prompt is exactly the user’s text (not an ID).
 
 Use a random seed for more variation or a fixed seed for determinism.
+
+
+
+
+RUN
+~/B/code/SERVER/task_1_UI/project$ npm run dev
+
+
+~/B/code/SERVER/task_1_UI/Server_new$ uvicorn app.main:app  --reload --port 8002
+
+
+~/B$ uvicorn Moptimizer.LLM_server.server:app --host 192.168.50.3 --port 8013
+
+~/B/data/KG/search$ uvicorn main:app --host 0.0.0.0 --port 8003

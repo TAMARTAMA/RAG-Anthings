@@ -1,0 +1,18 @@
+from app.services.llm_service import send_data_to_server_LLM
+from app.services.search_service import send_data_to_server_search
+from app.prompts_model import system_prompt_keywords, system_prompt_bm25_q
+from app.config import SERVER_MODEL_URL, SERVER_SEARCH_URL
+
+def process_asking(question: str):
+    keywords = send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_keywords)
+    keywords_list = keywords.get("text", "").split(", ")
+    if not keywords_list or keywords_list == [""]:
+        return "לא נמצאו מילות מפתח מתאימות לשאלה שלך."
+    
+    search_results = send_data_to_server_search(SERVER_SEARCH_URL, keywords_list)
+    
+    docs_text = "\n\n".join(
+        [f"[{i+1}] Title: {r['title']}" for i, r in enumerate(search_results.get("results", []))]
+    )
+    system_prompt_bm25_q_filled = system_prompt_bm25_q.format(docs=docs_text)
+    return send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_bm25_q_filled)
