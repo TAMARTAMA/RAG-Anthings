@@ -1,7 +1,7 @@
 
 Models/
 voice/
-task_1_UI/
+task_1_UI/Testing/
 *.json
 .venv/
 __pycache__

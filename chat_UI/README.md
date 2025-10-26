@@ -23,20 +23,6 @@ npm run dev
 ```
 Vite prints a local URL (default `http://localhost:5173`). Open it in the browser. Start the backend first so messages get real responses.
 
-## Build for Production
-```bash
-npm run build
-```
-The optimized output lives in `dist/`. To preview the production bundle locally run:
-```bash
-npm run preview
-```
-
-## Linting
-```bash
-npm run lint
-```
-
 ## Troubleshooting
 - If chat requests fail, confirm the backend is listening on port 8002 and that CORS allows the frontend origin.
 - Delete the browser's local storage (key `chatHistory`) if you want to reset saved conversations.
