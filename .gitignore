@@ -16,6 +16,6 @@ package-lock.json
 
 .env
 .env.*
-
+.github/
 __pycache__/
 *.pyc
