@@ -23,6 +23,31 @@ npm run dev
 ```
 Vite prints a local URL (default `http://localhost:5173`). Open it in the browser. Start the backend first so messages get real responses.
 
-## Troubleshooting
-- If chat requests fail, confirm the backend is listening on port 8002 and that CORS allows the frontend origin.
-- Delete the browser's local storage (key `chatHistory`) if you want to reset saved conversations.
+
+
+## Backend Server (FastAPI)
+The UI expects the FastAPI backend that lives in `../Server`.
+
+1. Ensure Python 3.10+ is installed.
+2. (Optional) create and activate a virtual environment:
+   ```bash
+   cd ../Server
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install backend dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Review `config.json` to confirm the host/port (`8002` by default) and the remote LLM/search endpoints. Adjust them if your environment differs.
+5. Start the API:
+   ```bash
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8002
+   ```
+   For production drop the `--reload` flag or run `python app/main.py`.
+6. The UI calls:
+   - `POST /api/message/add` for sending prompts
+   - `POST /api/message/rate` for feedback
+   Make sure these endpoints respond before launching the frontend.
+
+

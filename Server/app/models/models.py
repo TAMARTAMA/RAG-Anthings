@@ -2,12 +2,12 @@ from pydantic import BaseModel
 from typing import Literal, Optional
 from datetime import datetime
 
-class Ask(BaseModel):
-    message: str
+# class Ask(BaseModel):
+#     message: str
 
-class RateRequest(BaseModel):
-    id_question: int
-    rating: Optional[Literal["LIKE", "DISLIKE"]] = None
+# class RateRequest(BaseModel):
+#     id_question: int
+#     rating: Optional[Literal["LIKE", "DISLIKE"]] = None
 
 
 
@@ -21,7 +21,7 @@ class ChatMessage(BaseModel):
 
 
 class MessageAddRequest(BaseModel):
-    request: str  # שימי לב לשגיאת כתיב אם זו באמת המילה בפרונט
+    request: str  
     userId: str
 
 

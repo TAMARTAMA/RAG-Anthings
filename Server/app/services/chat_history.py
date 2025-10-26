@@ -1,20 +1,22 @@
-import json, os
+import json
+import os
 from pathlib import Path
 
-CFG_PATH = Path(__file__).with_name("..") / "config.json"
-cfg = json.loads(CFG_PATH.read_text(encoding="utf-8"))
+from app.config import cfg
 
-CHATS_DIR = cfg["chat_dir"]
+BASE_DIR = Path(__file__).resolve().parents[2]
+CHAT_FILE = (BASE_DIR / Path(cfg["chat_dir"])).resolve()
 
 def _load_chats():
-    if CHATS_DIR.exists():
-        with open(CHATS_DIR, "r", encoding="utf-8") as f:
+    if CHAT_FILE.exists():
+        with open(CHAT_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     else:
         return {"chats": []}
 
 def _save_chats(data):
-    with open(CHATS_DIR, "w", encoding="utf-8") as f:
+    CHAT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(CHAT_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def add_chat(question: str, answer: str):
@@ -28,7 +30,7 @@ def add_chat(question: str, answer: str):
     }
     data["chats"].append(chat_entry)
     _save_chats(data)
-    print(f" נוספה שיחה חדשה עם מזהה {next_id}")
+    print(f" New conversation with ID added {next_id}")
 
 
 def update_rate(chat_id: int, rate: str):
@@ -37,9 +39,9 @@ def update_rate(chat_id: int, rate: str):
         if chat["id"] == chat_id:
             chat["rate"] = rate
             _save_chats(data)
-            print(f" הדירוג של שיחה {chat_id} עודכן ל-{rate}")
+            print(f" The rating of a conversation {chat_id} updated to {rate}")
             return
-    print(f" לא נמצאה שיחה עם מזהה {chat_id}")
+    print(f" No conversation with ID found {chat_id}")
 
 
 def get_all_chats():
@@ -48,8 +50,8 @@ def get_all_chats():
 
 
 def delete_chat_file():
-    if CHATS_DIR.exists():
-        os.remove(CHATS_DIR)
-        print("🗑️ הקובץ chats.json נמחק בהצלחה.")
+    if CHAT_FILE.exists():
+        os.remove(CHAT_FILE)
+        print("The chats.json file was successfully deleted.")
     else:
-        print("⚠️ אין קובץ למחוק.")
+        print("There is no file to delete.")

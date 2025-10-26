@@ -1,47 +1,100 @@
-# Moptimizer
+# BOTNET Chat Platform
 
-A chat bot stack composed of:
-- **Server**: Node/Express API that talks to a **FastAPI** model server and stores chat history in a JSON file.
-- **Client**: Vite + React frontend.
+A full-stack conversational assistant that pairs a FastAPI backend with a React + TypeScript frontend. The backend orchestrates requests to remote large language model (LLM) and document search services, persists chat history, and exposes a REST API. The frontend delivers an RTL-friendly chat experience with local persistence, rating controls, and conversation management.
 
----
+## Repository Structure
 
-## 1) Project Layout
+```text
+.
+├── Server/                
+│   ├── app/               
+│   │   ├── routes/        
+│   │   ├── services/      
+│   │   ├── models/        
+│   │   └── config.py      
+│   ├── all_chats          
+│   ├── config.json        
+│   └── requirements.txt   
+└── chat_UI/               
+    ├── src/               
+    ├── package.json       
+    ├── tailwind.config.js 
+    └── tsconfig*.json     
+```
 
-SERVER/
-├─ Server/ # Node/Express API
-|  ├─ app/
-│  | ├─ models/
-│  | ├─ routes/
-|  | ├─ utils/
-│  | └─ services/
-│  ├─ config.json
-|  ├─ requirements
-|
-├─ chat_UI / # Vite + React client
-├─ index.html
-├─ src/
-└─ vite.config.ts
+## Key Features
 
-## 2) Requirements
+- Chatbot API that calls out to external LLM and search services.
+- Flat-file storage of conversations with rating support.
+- React chat interface with welcome screen, sidebar, history, and thumbs up/down feedback.
+- LocalStorage caching of chats for instant UI responsiveness.
 
-- **Node.js** v18+ and npm
-- **Python 3.10+** (for the model server)
-- A running **FastAPI model server** (default: `http://127.0.0.1:8001/generate`)
+## Prerequisites
 
-> If the model server runs on a different host or port, set `MODEL_URL` accordingly (see Environment).
+- Python 3.10+
+- Node.js 18+ and npm 9+
+- Network access from the backend to the remote LLM and search services defined in `Server/config.json`
 
----
+## Backend Setup (`Server/`)
 
-## 3) Environment Variables
+1. **Install dependencies**
+   ```bash
+   cd Server
+   python -m venv .venv
+   source .venv/bin/activate            
+   pip install -r requirements.txt
+   ```
+2. **Configure runtime settings**
+   - Edit `config.json` before launching the server.
+   - `server.host` / `server.port`: FastAPI listening address (default `0.0.0.0:8002`).
+   - `remote_server.url_LLM`: HTTP endpoint used for keyword extraction and answer generation.
+   - `remote_server.url_search`: HTTP endpoint queried for relevant documents.
+   - `chat_dir`: File name used for persisted history (`all_chats`).
+3. **Run the API locally**
+   ```bash
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8002
+   ```
+   Interactive docs are available at `http://localhost:8002/docs`.
 
-Create your own `.env` files from the examples below. **Do not commit real `.env` files**—commit only the `*.example` files.
+## Frontend Setup (`chat_UI/`)
 
-RUN
-~/B/code/SERVER/task_1_UI/project$ npm run dev
+1. **Install dependencies**
+   ```bash
+   cd chat_UI
+   npm install
+   ```
+2. **Configure API base URL (optional)**
+   - The frontend uses `http://localhost:8002/` by default (`src/services/api.ts`).
+   - Update this file if the backend is hosted elsewhere.
+3. **Run the Vite dev server**
+   ```bash
+   npm run dev
+   ```
+   Vite prints the local URL (typically `http://localhost:5173`).
 
-~/B/code/SERVER/task_1_UI/Server_new$ uvicorn app.main:app  --reload --port 8002
+## Running Locally
 
-~/B$ uvicorn Moptimizer.LLM_server.server:app --host 192.168.50.3 --port 8013
+1. Start the FastAPI server (`uvicorn app.main:app --reload --host 0.0.0.0 --port 8002`).
+2. In another terminal, start the frontend (`npm run dev`).
+3. Visit the frontend URL from the Vite output to begin chatting. Ensure the browser can reach the backend host/port.
 
-~/B/data/KG/search$ uvicorn main:app --host 0.0.0.0 --port 8003
+The backend writes chat history to the JSON file configured by `chat_dir` (default `Server/all_chats`). The frontend also caches chats in the browser's `localStorage` under the `chatHistory` key.
+
+## API Reference
+
+| Method | Path                   | Description                                   | Request Body (JSON)                                           | Response |
+|--------|------------------------|-----------------------------------------------|----------------------------------------------------------------|----------|
+| POST   | `/api/message/add`     | Submit a user prompt for processing           | `{ "request": "<text>", "userId": "<string>" }`                     | `{ "answer": "<text>" }` |
+| POST   | `/api/message/rate`    | Record thumbs up/down feedback for a message  | `{ "userId": "<string>", "messageId": "<id>", "rating": "like" \| "dislike" \| null }` | `{ "status": "ok" }` or error |
+| GET    | `/api/message/history` | Retrieve stored conversations                 | Query parameter: `userId` (currently unused in backend logic)  | `[ { "id": 1, "question": "...", "answer": "...", "rate": "..." } ]` |
+
+The backend uses the configured LLM endpoint to derive keywords and craft final responses. If keyword extraction fails or the remote services cannot be reached, the server answers with a fallback message such as “No keywords were found that match your question.”
+
+
+## Configuration & Environment
+
+- `Server/config.json` — Update host/port and remote service URLs before deployment.
+- `chat_UI/src/services/api.ts` — Adjust base API URLs for staging/production.
+
+
+

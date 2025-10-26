@@ -14,4 +14,4 @@ def send_data_to_server_LLM(url: str, question: str, system_prompt: str):
         response = requests.post(url, json=payload, headers=headers, timeout=60)
         return response.json()
     except Exception as e:
-        return {"error": f"שגיאה בשליחת הבקשה ל־LLM: {e}"}
+        return {"error": f"Error sending LLM application: {e}"}

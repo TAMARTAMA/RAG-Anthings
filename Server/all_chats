@@ -1,0 +1,40 @@
+{
+  "chats": [
+    {
+      "id": 1,
+      "question": "kk",
+      "answer": "No keywords were found that match your question.",
+      "rate": null
+    },
+    {
+      "id": 2,
+      "question": "what it is AI?",
+      "answer": "No keywords were found that match your question.",
+      "rate": null
+    },
+    {
+      "id": 3,
+      "question": "what it is AI?",
+      "answer": "No keywords were found that match your question.",
+      "rate": null
+    },
+    {
+      "id": 4,
+      "question": "what it is AI?",
+      "answer": "No keywords were found that match your question.",
+      "rate": null
+    },
+    {
+      "id": 5,
+      "question": "what it is AI?",
+      "answer": "No keywords were found that match your question.",
+      "rate": null
+    },
+    {
+      "id": 6,
+      "question": "sudo kill -9 156271\n",
+      "answer": "No keywords were found that match your question.",
+      "rate": null
+    }
+  ]
+}

@@ -16,7 +16,7 @@ export const useChats = () => {
     const now = new Date().toISOString();
     const newChat: Chat = {
       id: Date.now().toString(),
-      title: 'שיחה חדשה',
+      title: 'New conversation',
       messages: [],
       createdAt: now,
       updatedAt: now,
@@ -60,7 +60,6 @@ export const useChats = () => {
       try {
         const { message, chatHistory } = await sendMessageToAPI(content, activeChat.id || 'testUser');
 
-        // If server provided authoritative chat history, sync local chat to it
         if (chatHistory && chatHistory.messages) {
           const serverMessages: Message[] = chatHistory.messages.map((m: any) => ({
             id: m.id,
@@ -80,7 +79,7 @@ export const useChats = () => {
           setActiveChat(syncedChat);
           setChats((prev) => prev.map((chat) => (chat.id === activeChat.id ? syncedChat : chat)));
         } else {
-          // fallback: append local bot message
+
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
             role: 'assistant',
@@ -112,7 +111,6 @@ export const useChats = () => {
     async (messageId: string, rating: 'like' | 'dislike' | null) => {
       if (!activeChat) return;
 
-      // Update UI optimistically
       const updatedMessages = activeChat.messages.map((m) =>
         m.id === messageId ? { ...m, rating } : m
       );
@@ -126,7 +124,6 @@ export const useChats = () => {
         prev.map((chat) => (chat.id === activeChat.id ? updatedChat : chat))
       );
 
-  // Send to backend
   await rateMessageToAPI(activeChat.id || 'testUser', messageId, rating);
     },
     [activeChat]

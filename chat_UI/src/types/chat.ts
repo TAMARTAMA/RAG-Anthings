@@ -3,7 +3,7 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: string; // ISO8601 string
+  timestamp: string; 
   rating?: 'like' | 'dislike' | null;
   replyTo?: string | null;
 }
