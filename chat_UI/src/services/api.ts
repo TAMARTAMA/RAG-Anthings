@@ -31,7 +31,7 @@ export async function sendMessageToAPI(
       throw new Error(data.error || 'Failed to send message');
     }
     
-    return { message: data.answer || 'Message sent!' };
+    return { message: data.answer.text || 'Message sent!' };
   } catch (error: any) {
     return { message: `Error: ${error.message}` };
   }
