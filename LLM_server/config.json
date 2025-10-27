@@ -1,6 +1,8 @@
 {
-  "model_dir": "/srv/python_envs/shared_env/B/gemma-3-4b-it",
+  "model_dir": "/srv/python_envs/shared_env/B/gemma-3-1b-it",
   "device_map": "auto",
   "default_max_new_tokens": 1024,
-  "default_temperature": 1.0
+  "default_temperature": 1.0,
+  "quantization": "int8"
+
 }

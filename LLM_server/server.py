@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from transformers import AutoTokenizer, Gemma3ForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForCausalLM, Gemma3ForConditionalGeneration, BitsAndBytesConfig
 from pathlib import Path
 import torch, json, time
 
@@ -9,8 +9,9 @@ CFG_PATH = Path(__file__).with_name("config.json")
 cfg = json.loads(CFG_PATH.read_text(encoding="utf-8"))
 
 MODEL_DIR = cfg["model_dir"]
-DTYPE = torch.bfloat16
-DEVICE_MAP = cfg.get("device_map")
+DEVICE_MAP = cfg.get("device_map", "auto")
+
+quant_mode = cfg.get("quantization", "none")  # "none" / "int8"
 
 # ===== FastAPI Init =====
 app = FastAPI(title="LLM Server (Gemma 3 4B IT)")
@@ -30,7 +31,6 @@ class GenerateOut(BaseModel):
 # --- Schemas for /probabilities ---
 class ProbabilitiesIn(BaseModel):
     messages: list[dict]
-    temperature: float = 1.0
 
 class TokenProb(BaseModel):
     token: str
@@ -43,11 +43,30 @@ class ProbabilitiesOut(BaseModel):
 @app.on_event("startup")
 def load_model():
     global _model, _tok
-    print(f"[LOAD] Loading model from {MODEL_DIR} ...", end="", flush=True)
-    _model = Gemma3ForConditionalGeneration.from_pretrained(
-        MODEL_DIR, local_files_only=True, device_map=DEVICE_MAP, dtype=DTYPE
-    ).eval()
-    _tok = AutoTokenizer.from_pretrained(MODEL_DIR)
+    print(f"[LOAD] Loading model from {MODEL_DIR} (quant={quant_mode})...", end="", flush=True)
+
+    if quant_mode == "int8":
+        # === INT8 MODE ===
+        quant_cfg = BitsAndBytesConfig(load_in_8bit=True)
+        _model = AutoModelForCausalLM.from_pretrained(
+            MODEL_DIR,
+            quantization_config=quant_cfg,
+            torch_dtype=torch.bfloat16,   
+            device_map=DEVICE_MAP,         
+            local_files_only=True
+        ).eval()
+    else:
+        # === BF16 ===
+        _model = AutoModelForCausalLM.from_pretrained(
+            MODEL_DIR,
+            device_map=DEVICE_MAP,
+            dtype=torch.bfloat16,
+            local_files_only=True
+        ).eval()
+
+    _tok = AutoTokenizer.from_pretrained(MODEL_DIR, local_files_only=True)
+    if _tok.pad_token_id is None and _tok.eos_token_id is not None:
+        _tok.pad_token = _tok.eos_token
     print(" done.")
 
 @app.get("/health")
@@ -90,13 +109,12 @@ def probabilities(req: ProbabilitiesIn):
         req.messages, add_generation_prompt=True, return_tensors="pt"
     ).to(_model.device)
 
-    # Temperature safeguard (avoid division by zero)
-    t = max(1e-6, float(req.temperature))
-
     with torch.inference_mode():
-        logits = _model(input_ids=inputs).logits[:, -1, :]   # [1, vocab_size]
-        probs = torch.softmax(logits / t, dim=-1)[0]         # [vocab_size]
-
+        # compute softmax in float32 for numerical stability, then renormalize
+        logits = _model(input_ids=inputs).logits[:, -1, :]            
+        probs = torch.softmax(logits.to(torch.float32), dim=-1)[0]     
+        probs = probs / probs.sum()             
+        
     V = probs.shape[0]
     ids = list(range(V))
 
