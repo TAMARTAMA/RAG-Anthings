@@ -7,11 +7,12 @@ router = APIRouter()
 
 @router.post("/add")
 def ask(req: MessageAddRequest):
-    ans = process_asking(req.request)
+    ans,keywords_list = process_asking(req.request)
+    ans = ans["text"]
     print(f" Answer generated: {ans} time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
-    add_chat(req.request, ans)
-    return {"answer": ans}
+    id = add_chat(req.request, ans,keywords_list)
+    return {"answer": ans, "messegeId": id}
 
 @router.post("/rate")
 def rate(req: MessageRateRequest):

@@ -1,51 +1,36 @@
-import json
-import os
+import jsonlines
 from pathlib import Path
-
 from app.config import cfg
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-CHAT_FILE = (BASE_DIR / Path(cfg["chat_dir"])).resolve()
+CHAT_FILE = (BASE_DIR / Path(cfg["chat_dir"])).with_suffix(".jsonl")
 
-def _load_chats():
-    if CHAT_FILE.exists():
-        with open(CHAT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    else:
-        return {"chats": []}
-
-def _save_chats(data):
-    CHAT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(CHAT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def add_chat(question: str, answer: str,titels=[]):
-    data = _load_chats()
-    next_id = len(data["chats"]) + 1
+def add_chat(question: str, answer: str,titles=[]):
     chat_entry = {
-        "id": next_id,
-        
+        "id": sum(1 for _ in open(CHAT_FILE, "r", encoding="utf-8")) + 1 if CHAT_FILE.exists() else 1,
         "question": question,
         "answer": answer,
-        "rate": None
-        ,"titles":[]
+        "rate": None,
+        "titles": titles
     }
-    data["chats"].append(chat_entry)
-    _save_chats(data)
-    print(f" New conversation with ID added {next_id}")
-
+    with jsonlines.open(CHAT_FILE, mode='a') as writer:
+        writer.write(chat_entry)
+    print(f" Chat {chat_entry['id']} added")
+    return chat_entry["id"]
 
 def update_rate(chat_id: int, rate: str):
-    data = _load_chats()
-    for chat in data["chats"]:
-        if chat["id"] == chat_id:
-            chat["rate"] = rate
-            _save_chats(data)
-            print(f" The rating of a conversation {chat_id} updated to {rate}")
-            return
-    print(f" No conversation with ID found {chat_id}")
-
+    chats = []
+    updated = False
+    with jsonlines.open(CHAT_FILE, mode='r') as reader:
+        for chat in reader:
+            if chat["id"] == chat_id:
+                chat["rate"] = rate
+                updated = True
+            chats.append(chat)
+    with jsonlines.open(CHAT_FILE, mode='w') as writer:
+        writer.write_all(chats)
+    print(f" Updated rate for chat {chat_id}") if updated else print(f" Not found")
 
 def get_all_chats():
-    data = _load_chats()
-    return data["chats"]
+    with jsonlines.open(CHAT_FILE, mode='r') as reader:
+        return list(reader)

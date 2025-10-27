@@ -1,0 +1,11 @@
+{
+  "chat_dir": "all_chats.jsonl",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8002
+  },
+  "remote_server": {
+  "url_LLM": "http://192.168.50.3:8013/generate",
+  "url_search": "http://192.168.50.3:8003/search"
+  }
+}

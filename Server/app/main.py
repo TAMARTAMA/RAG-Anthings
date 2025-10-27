@@ -5,7 +5,6 @@ from app.config import HOST_SERVER, PORT_SERVER
 
 app = FastAPI(title="Main Server Chatbot")
 
-# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  
@@ -15,7 +14,6 @@ app.add_middleware(
 )
 
 app.include_router(chat_routes.router, prefix="/api/message")
-
 
 if __name__ == "__main__":
     import uvicorn
