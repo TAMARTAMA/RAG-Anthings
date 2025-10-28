@@ -1,5 +1,6 @@
 {
-  "chat_dir": "all_chats.jsonl",
+  "chats_name": "all_chats.jsonl",
+  "ratings_name": "all_ratings.jsonl",
   "server": {
     "host": "0.0.0.0",
     "port": 8002

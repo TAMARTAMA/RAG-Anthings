@@ -7,9 +7,10 @@ router = APIRouter()
 
 @router.post("/add")
 def ask(req: MessageAddRequest):
+    time_started = time.time()
     ans,keywords_list = process_asking(req.request)
     ans = ans["text"]
-    print(f" Answer generated: {ans} time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
+    print(f" Answer generated: {ans} running time: {time.time() - time_started} seconds")
 
     id = add_chat(req.request, ans,keywords_list)
     return {"answer": ans, "messegeId": id}
@@ -21,6 +22,3 @@ def rate(req: MessageRateRequest):
         return {"status": "ok"}
     return {"status": "error", "message": "id not found"}
 
-@router.get("/history")
-def get_history_route(userId: str = Query(..., description="Chat ID")):
-    return get_all_chats()

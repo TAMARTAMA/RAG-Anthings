@@ -1,36 +1,33 @@
 import jsonlines
+import uuid
+import os
 from pathlib import Path
-from app.config import cfg
+from app.config import CHATS_FILE, RATINGS_FILE
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-CHAT_FILE = (BASE_DIR / Path(cfg["chat_dir"])).with_suffix(".jsonl")
 
 def add_chat(question: str, answer: str,titles=[]):
     chat_entry = {
-        "id": sum(1 for _ in open(CHAT_FILE, "r", encoding="utf-8")) + 1 if CHAT_FILE.exists() else 1,
+        "id": str(uuid.uuid4()),
         "question": question,
         "answer": answer,
-        "rate": None,
         "titles": titles
     }
-    with jsonlines.open(CHAT_FILE, mode='a') as writer:
+    with jsonlines.open(CHATS_FILE, mode='a') as writer:
         writer.write(chat_entry)
     print(f" Chat {chat_entry['id']} added")
     return chat_entry["id"]
 
 def update_rate(chat_id: int, rate: str):
-    chats = []
-    updated = False
-    with jsonlines.open(CHAT_FILE, mode='r') as reader:
-        for chat in reader:
-            if chat["id"] == chat_id:
-                chat["rate"] = rate
-                updated = True
-            chats.append(chat)
-    with jsonlines.open(CHAT_FILE, mode='w') as writer:
-        writer.write_all(chats)
-    print(f" Updated rate for chat {chat_id}") if updated else print(f" Not found")
-
-def get_all_chats():
-    with jsonlines.open(CHAT_FILE, mode='r') as reader:
-        return list(reader)
+    found = False
+    lines = []
+    if os.path.exists(RATINGS_FILE):
+        with jsonlines.open(RATINGS_FILE, 'r') as r:
+            for chat in r and not found:
+                if chat["id"] == chat_id:
+                    chat["rate"] = rate
+                    found = True
+                lines.append(chat)
+    if not found:
+        lines.append({"id": chat_id, "rate": rate})
+    with jsonlines.open(RATINGS_FILE, 'w') as w:
+        w.write_all(lines)
