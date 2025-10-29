@@ -1,4 +1,5 @@
 import jsonlines
+import json
 import uuid
 import os
 from pathlib import Path
@@ -18,16 +19,11 @@ def add_chat(question: str, answer: str,titles=[]):
     return chat_entry["id"]
 
 def update_rate(chat_id: int, rate: str):
-    found = False
-    lines = []
-    if os.path.exists(RATINGS_FILE):
-        with jsonlines.open(RATINGS_FILE, 'r') as r:
-            for chat in r and not found:
-                if chat["id"] == chat_id:
-                    chat["rate"] = rate
-                    found = True
-                lines.append(chat)
-    if not found:
-        lines.append({"id": chat_id, "rate": rate})
-    with jsonlines.open(RATINGS_FILE, 'w') as w:
-        w.write_all(lines)
+    with open(RATINGS_FILE, 'a+', encoding='utf-8') as f:
+        f.seek(0)
+        data = json.load(f) if f.read() else {}
+    data[chat_id] = rate
+
+    with open(RATINGS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f" Updated rate for chat {chat_id} → {rate}")

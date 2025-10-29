@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from app.models.types_chat import MessageRateRequest, MessageAddRequest
 from app.services.process_question import process_asking
-from app.services.chat_history import update_rate, add_chat, get_all_chats
+from app.services.chat_history import update_rate, add_chat
 import time
 router = APIRouter()
 
