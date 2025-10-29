@@ -1,0 +1,21 @@
+# קבצי קומפילציה
+__pycache__/
+*.py[cod]
+*$py.class
+
+# סביבות וירטואליות
+venv/
+.env/
+.venv/
+
+# תוצרים
+build/
+dist/
+*.egg-info/
+
+# יומנים
+*.log
+
+# הגדרות IDE
+.vscode/
+.idea/
