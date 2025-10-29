@@ -1,26 +1,26 @@
-## Transcription API
+# Transcription API
 =================
 
 FastAPI server for speech-to-text transcription using OpenAI Whisper.
 
-# Setup
+## Setup
 -----
 pip install fastapi uvicorn openai-whisper torch torchvision torchaudio 
 
-# Run
+## Run
 ---
 uvicorn server:app --host 0.0.0.0 --port 8000
 
-# Usage
+## Usage
 -----
 curl -X POST "http://localhost:8000/transcribe" \
   -F "file=@sample.wav" \
   -F "language=auto"
 
-# Response:
+## Response:
 {"text": "Hello world", "language": "en"}
 
-# Notes
+## Notes
 -----
 - Temporary files are auto-deleted.
 - CORS allows requests from http://localhost:5173
