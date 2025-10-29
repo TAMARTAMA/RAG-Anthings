@@ -1,21 +1,21 @@
-# קבצי קומפילציה
+# Compilation files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# סביבות וירטואליות
+# Virtual environments
 venv/
 .env/
 .venv/
 
-# תוצרים
+# Build artifacts
 build/
 dist/
 *.egg-info/
 
-# יומנים
+# Log files
 *.log
 
-# הגדרות IDE
+# IDE configurations
 .vscode/
 .idea/
