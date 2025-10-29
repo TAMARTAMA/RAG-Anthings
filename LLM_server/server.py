@@ -30,7 +30,7 @@ class GenerateOut(BaseModel):
 
 # --- Schemas for /probabilities ---
 class ProbabilitiesIn(BaseModel):
-    messages: list[dict]
+    prompt: str
 
 class TokenProb(BaseModel):
     token: str
@@ -101,27 +101,23 @@ def generate(req: GenerateIn):
 # --- Endpoint: full next-token distribution as [{token, prob}] ---
 @app.post("/probabilities", response_model=ProbabilitiesOut)
 def probabilities(req: ProbabilitiesIn):
-    if not isinstance(req.messages, list) or len(req.messages) == 0:
-        raise HTTPException(status_code=400, detail="messages must be a non-empty list")
+    if not isinstance(req.prompt, str) or not req.prompt.strip():
+        raise HTTPException(status_code=400, detail="prompt must be a non-empty string")
 
-    # Build model inputs using the same chat template as /generate
     inputs = _tok.apply_chat_template(
-        req.messages, add_generation_prompt=True, return_tensors="pt"
+        [{"role": "user", "content": req.prompt}],
+        add_generation_prompt=True,          
+        return_tensors="pt"
     ).to(_model.device)
 
     with torch.inference_mode():
-        # compute softmax in float32 for numerical stability, then renormalize
-        logits = _model(input_ids=inputs).logits[:, -1, :]            
-        probs = torch.softmax(logits.to(torch.float32), dim=-1)[0]     
-        probs = probs / probs.sum()             
-        
+        logits = _model(input_ids=inputs).logits[:, -1, :]  
+        probs = torch.softmax(logits.to(torch.float32), dim=-1)[0]
+        probs = probs / probs.sum()
+
     V = probs.shape[0]
     ids = list(range(V))
-
-    # Try direct ID->token conversion; may produce None/"" for some IDs
     tokens = _tok.convert_ids_to_tokens(ids)
-
-    # Fill any missing/empty entries via decode; if still empty -> "<id:N>"
     for i, tok in enumerate(tokens):
         if tok is None or tok == "":
             fallback = _tok.decode([i], skip_special_tokens=False)
