@@ -17,8 +17,7 @@ def ask(req: MessageAddRequest):
 
 @router.post("/rate")
 def rate(req: MessageRateRequest):
-    success = update_rate(req.messageId, req.rating)
-    if success:
-        return {"status": "ok"}
-    return {"status": "error", "message": "id not found"}
+    update_rate(req.messageId, req.rating)
+    return {"status": "ok"}
+
 

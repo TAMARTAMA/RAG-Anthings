@@ -17,13 +17,21 @@ def add_chat(question: str, answer: str,titles=[]):
         writer.write(chat_entry)
     print(f" Chat {chat_entry['id']} added")
     return chat_entry["id"]
+import json
+import os
 
 def update_rate(chat_id: int, rate: str):
+    """מעדכן או יוצר רשומת דירוג ייחודית לפי ID"""
     with open(RATINGS_FILE, 'a+', encoding='utf-8') as f:
         f.seek(0)
-        data = json.load(f) if f.read() else {}
-    data[chat_id] = rate
+        content = f.read().strip()
+        data = json.loads(content) if content else {}
 
+    # תמיד נשמור את המזהה כמחרוזת
+    data[str(chat_id)] = rate
+
+    # שומרים מחדש את כל המידע
     with open(RATINGS_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    print(f" Updated rate for chat {chat_id} → {rate}")
+
+    print(f"✅ Updated rate for chat {chat_id} → {rate}")
