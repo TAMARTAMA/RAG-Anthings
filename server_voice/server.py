@@ -6,7 +6,7 @@ from config import MODEL_NAME, DEVICE
 import time
 
 # Load Whisper model
-model = whisper.load_model(MODEL_NAME)
+model = whisper.load_model(MODEL_NAME, device=DEVICE)
 
 # Init FastAPI app
 app = FastAPI(title="Transcription API")
@@ -53,4 +53,5 @@ async def transcribe(file: UploadFile = File(...), language: str = Form("auto"))
         return JSONResponse({"error": str(e)}, status_code=500)
     finally:
         os.remove(path)
+
 
