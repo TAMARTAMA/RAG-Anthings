@@ -14,10 +14,9 @@ uvicorn server:app --host 0.0.0.0 --port 8000
 ## Usage
 
 curl -X POST "http://localhost:8000/transcribe" \
-  -F "file=@sample.wav" \
+  -F "file=@sample.mp3" \
   -F "language=auto"
 
-You can also upload .mp3.
 
 ## Response:
 {"text": "Hello world", "language": "en"}
