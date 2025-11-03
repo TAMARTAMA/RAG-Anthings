@@ -11,8 +11,14 @@ def process_asking(question: str):
         return {"text":"No keywords were found that match your question."},keywords_list
     
     search_results = send_data_to_server_search(SERVER_SEARCH_URL, keywords_list)
+    # docs_text = "\n\n".join(
+    #     [f"[{i+1}] Title: {r['title']} " for i, r in enumerate(search_results.get("results", []))]
+    # )
     docs_text = "\n\n".join(
-        [f"[{i+1}] Title: {r['title']}" for i, r in enumerate(search_results.get("results", []))]
+    [
+        f"[{i+1}] Title: {r.get('title', 'No Title')}\nText: {r.get('text', '')}"
+        for i, r in enumerate(search_results.get("results", []))
+    ]
     )
     system_prompt_search_q_filled = system_prompt_search_q.format(docs=docs_text)
-    return send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_search_q_filled),keywords_list
+    return send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_search_q_filled),keywords_list,search_results

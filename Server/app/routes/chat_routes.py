@@ -19,5 +19,13 @@ def ask(req: MessageAddRequest):
 def rate(req: MessageRateRequest):
     update_rate(req.messageId, req.rating)
     return {"status": "ok"}
+@router.post("/add_test")
+def ask(req: MessageAddRequest):
+
+    ans,keywords_list,search_results = process_asking(req.request)
+    ans = ans["text"]
+    id = add_chat(req.request, ans,keywords_list)
+    return {"answer": ans, "messegeId": id ,"keywords": keywords_list ,"search_results": search_results}
+
 
 
