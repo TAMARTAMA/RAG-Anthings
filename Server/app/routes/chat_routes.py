@@ -20,7 +20,7 @@ def ask(req: MessageAddRequest):
 def rate(req: MessageRateRequest):
     update_rate(req.messageId, req.rating)
     return {"status": "ok"}
-@router.post("/add_test")
+@router.post("/addtest")
 def ask(req: MessageAddRequest):
 
     ans,keywords_list,search_results = process_asking(req.request,system_prompt_solve_and_keywords)
