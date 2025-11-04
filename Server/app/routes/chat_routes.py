@@ -23,7 +23,7 @@ def rate(req: MessageRateRequest):
 
 @router.post("/addtest")
 def ask(req: MessageAddRequest):
-    ans,keywords_list, search_results = process_asking(req.request,system_prompt_solve_and_keywords)
+    ans,keywords_list, search_results = process_asking(req.request)
     id = add_chat(req.request, ans,keywords_list)
     return {"answer": ans, "messegeId": id ,"keywords": keywords_list ,"search_results": search_results}
 
