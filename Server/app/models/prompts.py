@@ -5,18 +5,6 @@ system_prompt_keywords = (
     "Avoid rewording the question itself."
     "Return only a clean list of keywords separated by commas, without explanations, numbering, or additional text."    "Avoid rephrasing the question itself. "
 )
-system_prompt_solve_and_keywords = (
-    "You will receive a multiple-choice question with 4 options (a, b, c, d).\n"
-    "Your task has two parts:\n"
-    " Determine the correct answer — respond with only the letter of the correct option (a, b, c, or d).\n"
-    " Then, generate up to 10 relevant keywords or key terms related to both the question and the correct answer.\n"
-    "   These keywords should capture the main concepts, entities, or topics involved.\n"
-    "   Focus on nouns, short phrases, and specific terms useful for searching Wikipedia.\n"
-    "   Do NOT rephrase the question or include explanations.\n"
-    "Format your response strictly like this:\n"
-    "Answer: <letter>\n"
-    "Keywords: <comma-separated list of up to 10 keywords>\n"
-)
 system_prompt_search_q = (
    "You are an expert knowledge assistant.\n"
     "You will receive a question and several relevant text documents retrieved from a local knowledge base by searching for definitions related to the question.\n"
