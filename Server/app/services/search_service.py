@@ -19,7 +19,7 @@ def send_data_to_server_search(url: str, keywords: list):
                         }
                     } for kw in keywords
                 ],
-                "minimum_should_match": 1  # לפחות מונח אחד צריך להתאים
+                "minimum_should_match": 1  
             }
         }
     }
@@ -32,6 +32,5 @@ def send_data_to_server_search(url: str, keywords: list):
         for hit in hits]
         return {"results": results}
     except Exception as e:
-        print("❌ שגיאה בביצוע חיפוש:", str(e))
-        return []
+        return {"error": f"Error sending request to search server: {e}"}
         
