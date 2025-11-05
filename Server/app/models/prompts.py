@@ -21,3 +21,11 @@ system_prompt_search_q = (
     "### Instruction:\n"
     "Answer the user's question naturally and directly based on the documents provided."
 )
+system_prompt_prob = (
+    "Grade answers. Reply with ONLY a number 0-100 without words ,symbols or explanation."
+    )
+user_prompt_prob = (
+    "Question:\n{question}\n\n"
+    "Candidate answer:\n{answer}\n\n"
+    "Score (0-10):"
+)

@@ -19,3 +19,7 @@ class MessageRateRequest(BaseModel):
     messageId: int
 
     rating: Optional[Literal["like", "dislike", None]] = None
+
+class ProbabilityRequest(BaseModel):
+    question: str
+    answer: str
