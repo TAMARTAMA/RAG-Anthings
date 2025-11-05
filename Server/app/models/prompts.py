@@ -23,9 +23,11 @@ system_prompt_search_q = (
 )
 system_prompt_prob = (
     "Grade answers. Reply with ONLY a number 0-10 without words ,symbols or explanation."
+
     )
 user_prompt_prob = (
     "Question:\n{question}\n\n"
     "Candidate answer:\n{answer}\n\n"
     "Score (0-10):"
+
 )
