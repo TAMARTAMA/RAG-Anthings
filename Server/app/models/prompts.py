@@ -1,9 +1,10 @@
 from pydantic import BaseModel
+
 system_prompt_keywords = (
     "Your task is to generate up to 5 relevant keywords or key terms that capture the essential concepts needed to answer the given question."
     "Focus on words, short phrases, or entities (such as names, events, or scientific terms) that will help retrieve the correct answer from Wikipedia's database."
     "Avoid rewording the question itself."
-    "Return only a clean list of keywords separated by commas, without explanations, numbering, or additional text."    "Avoid rephrasing the question itself. "
+    "Return only a clean list of keywords separated by commas, without explanations, numbering, or additional text."
 )
 system_prompt_search_q = (
    "You are an expert knowledge assistant.\n"
@@ -19,4 +20,12 @@ system_prompt_search_q = (
     "{docs}\n\n"
     "### Instruction:\n"
     "Answer the user's question naturally and directly based on the documents provided."
+)
+system_prompt_prob = (
+    "Grade answers. Reply with ONLY a number 0-10 without words ,symbols or explanation."
+    )
+user_prompt_prob = (
+    "Question:\n{question}\n\n"
+    "Candidate answer:\n{answer}\n\n"
+    "Score (0-10):"
 )

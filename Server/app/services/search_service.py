@@ -5,7 +5,7 @@ client = OpenSearch(
     http_auth=("admin", "MyStrongPassword123!"),
     use_ssl=False
 )
-def send_data_to_server_search(url: str, keywords: list):
+def send_data_to_server_search( keywords: list):
     body = {
         "size": 10,
         "query": {
