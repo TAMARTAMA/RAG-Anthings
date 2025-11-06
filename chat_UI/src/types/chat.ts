@@ -6,7 +6,8 @@ export interface Message {
   timestamp: string; 
   rating?: 'like' | 'dislike' | null;
   replyTo?: string | null;
-  probability?: number; 
+  probability?: number;
+  links?: { title: string; url: string }[]; 
 }
 
 export interface Chat {

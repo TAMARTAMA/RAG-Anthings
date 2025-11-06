@@ -70,11 +70,28 @@ useEffect(() => {
 
       <div className="flex-1 max-w-3xl">
         <div
-          className={`rounded-2xl p-4 ${
-            isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'
-          }`}
+          className={`rounded-2xl p-4 ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}
         >
           <p className="text-sm">{message.content}</p>
+
+          {/* Links display */}
+          {message.links && message.links.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {message.links.map((link, idx) => (
+                <div key={idx} className="text-xs flex items-center gap-2">
+                  <span className="font-medium text-gray-700">{link.title}:</span>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {link.url}
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {!isUser && (
@@ -85,9 +102,7 @@ useEffect(() => {
                 className="flex items-center gap-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-full px-3 py-1 shadow-sm"
                 title="Answer confidence"
               >
-                <span className="text-blue-600">
-                  {message.probability.toFixed(1)}%
-                </span>
+                <span className="text-blue-600">{message.probability.toFixed(1)}%</span>
                 <span className="text-gray-400">confidence</span>
               </div>
             )}
@@ -97,16 +112,10 @@ useEffect(() => {
               onClick={handleSpeak}
               title={isSpeaking ? 'Stop reading' : 'Read aloud'}
               className={`p-1 rounded-full transition-colors duration-200 ${
-                isSpeaking
-                  ? 'text-red-500 animate-pulse'
-                  : 'text-gray-400 hover:text-blue-500'
+                isSpeaking ? 'text-red-500 animate-pulse' : 'text-gray-400 hover:text-blue-500'
               }`}
             >
-              {isSpeaking ? (
-                <Square className="w-4 h-4" />
-              ) : (
-                <Volume2 className="w-4 h-4" />
-              )}
+              {isSpeaking ? <Square className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </button>
 
             {/* Rating buttons */}
@@ -115,9 +124,7 @@ useEffect(() => {
                 onRate(message.id, message.rating === 'like' ? null : 'like')
               }
               className={`p-1 rounded-full transition-colors duration-200 ${
-                message.rating === 'like'
-                  ? 'text-yellow-500'
-                  : 'text-gray-400 hover:text-yellow-500'
+                message.rating === 'like' ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'
               }`}
             >
               <ThumbsUp className="w-4 h-4" />
@@ -128,9 +135,7 @@ useEffect(() => {
                 onRate(message.id, message.rating === 'dislike' ? null : 'dislike')
               }
               className={`p-1 rounded-full transition-colors duration-200 ${
-                message.rating === 'dislike'
-                  ? 'text-yellow-500'
-                  : 'text-gray-400 hover:text-yellow-500'
+                message.rating === 'dislike' ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'
               }`}
             >
               <ThumbsDown className="w-4 h-4" />

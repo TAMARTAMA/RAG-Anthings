@@ -58,7 +58,7 @@ export const useChats = () => {
 
       setIsLoading(true);
       try {
-        const { message, chatHistory ,messageId } = await sendMessageToAPI(content, activeChat.id || 'testUser');
+        const { message, chatHistory ,messageId , links} = await sendMessageToAPI(content, activeChat.id || 'testUser');
 
         if (chatHistory && chatHistory.messages) {
           const serverMessages: Message[] = chatHistory.messages.map((m: any) => ({
@@ -68,6 +68,7 @@ export const useChats = () => {
             timestamp: m.timestamp,
             rating: m.rating ?? null,
             replyTo: m.replyTo ?? null,
+            links: links || [],
           }));
 
           const syncedChat: Chat = {

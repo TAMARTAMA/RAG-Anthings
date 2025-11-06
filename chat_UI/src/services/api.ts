@@ -20,7 +20,7 @@ export async function rateMessageToAPI(userId: string, messageId: string, rating
 export async function sendMessageToAPI(
   message: string,
   userId: string
-): Promise<{ message: string; messageId?: string; chatHistory?: any }>  {
+): Promise<{ message: string; messageId?: string; chatHistory?: any, links?: { title: string; url: string }[] }>  {
   try {
     const response = await fetch(`${PORT_MAIN_SERVER}/api/message/add`, {
       method: 'POST',
@@ -34,7 +34,8 @@ export async function sendMessageToAPI(
       throw new Error(data.error || 'Failed to send message');
     }
     
-    return { message: data.answer || 'Message sent!', messageId: data.messageId };
+    return { message: data.answer || 'Message sent!', messageId: data.messageId ,chatHistory: data.chatHistory,
+    links: data.links || [],};
   } catch (error: any) {
     return { message: `Error: ${error.message}` };
   }
