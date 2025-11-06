@@ -1,7 +1,10 @@
-const PORT_MAIN_SERVER = "http://192.168.50.3:8002/"
+
+const PORT_MAIN_SERVER = "https://scores-campaigns-needed-computer.trycloudflare.com";
+
+
 export async function rateMessageToAPI(userId: string, messageId: string, rating: 'like' | 'dislike' | null) {
   try {
-    const response = await fetch(PORT_MAIN_SERVER+'api/message/rate', {
+    const response = await fetch(`${PORT_MAIN_SERVER}/api/message/rate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -19,7 +22,7 @@ export async function sendMessageToAPI(
   userId: string
 ): Promise<{ message: string; messageId?: string; chatHistory?: any }>  {
   try {
-    const response = await fetch(PORT_MAIN_SERVER+'api/message/add', {
+    const response = await fetch(`${PORT_MAIN_SERVER}/api/message/add`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
