@@ -1,5 +1,5 @@
 
-const PORT_MAIN_SERVER = "https://scores-campaigns-needed-computer.trycloudflare.com";
+const PORT_MAIN_SERVER = "https://television-man-recommendations-cast.trycloudflare.com";
 
 
 export async function rateMessageToAPI(userId: string, messageId: string, rating: 'like' | 'dislike' | null) {
