@@ -27,9 +27,14 @@ def send_data_to_server_search( keywords: list):
         res = client.search(index="wikipedia", body=body)
 
         hits = res.get("hits", {}).get("hits", [])
-        results = [{"title": hit["_source"].get("title", "No Title"), 
-            "score": hit.get("_score", 0)} 
-        for hit in hits]
+        results = [
+            {
+                "title": hit["_source"].get("title", "No Title"),
+                "score": hit.get("_score", 0),
+                "url": hit["_source"].get("url", "No URL")  # 👈 נוסף שדה URL
+            }
+            for hit in hits
+        ]
         return {"results": results}
     except Exception as e:
         return {"error": f"Error sending request to search server: {e}"}

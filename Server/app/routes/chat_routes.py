@@ -8,12 +8,15 @@ router = APIRouter()
 @router.post("/add")
 def ask(req: MessageAddRequest):
     time_started = time.time()
-    ans,keywords_list, _ = process_asking(req.request)
+    ans,keywords_list,search_res = process_asking(req.request)
     ans = ans["text"]
     print(f" Answer generated: {ans} running time: {time.time() - time_started} seconds")
-
     id = add_chat(req.request, ans,keywords_list)
-    return {"answer": ans, "messegeId": id}
+    linksForMessage = [
+        {"title": hit.get("title", "No Title"), "url": hit.get("url", "#")}
+        for hit in search_res
+    ]
+    return {"answer": ans, "messegeId": id, "links": linksForMessage}
 
 @router.post("/rate")
 def rate(req: MessageRateRequest):
