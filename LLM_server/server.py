@@ -2,11 +2,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForCausalLM, Gemma3ForConditionalGeneration, BitsAndBytesConfig
 from pathlib import Path
-import torch, json, time
+import torch, json, time, os
 
 # ===== Load Config =====
-CFG_PATH = Path(__file__).with_name("config.json")
-cfg = json.loads(CFG_PATH.read_text(encoding="utf-8"))
+CFG_PATH = Path(os.environ.get("LLM_CFG", Path(__file__).with_name("config-1b.json")))
+cfg = json.loads(Path(CFG_PATH).read_text(encoding="utf-8"))
 
 MODEL_DIR = cfg["model_dir"]
 DEVICE_MAP = cfg.get("device_map", "auto")
