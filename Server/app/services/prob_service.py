@@ -17,5 +17,5 @@ def ask_prob(question: str, answer: str) -> int:
     text = r.json().get("text", "").strip()
     m = re.search(r"-?\d+", text)
     score = int(m.group(0)) if m else 0
-    score = min(max(score, 0), 100)
+    score = min(max(score, 0), 10)
     return score
