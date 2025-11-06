@@ -39,6 +39,30 @@ export async function sendMessageToAPI(
     return { message: `Error: ${error.message}` };
   }
 }
+export async function getProbabilityFromServer(
+  question: string,
+  answer: string
+): Promise<{ probability?: number; error?: string }> {
+  try {
+    const response = await fetch(`${PORT_MAIN_SERVER}/api/prob/get_probalitiy`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ question, answer }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { probability: data.probability };
+  } catch (err: any) {
+    console.error(" Error fetching probability:", err);
+    return { error: err.message };
+  }
+}
 // Optionally, fetch the full chat history after sending a message
     // let chatHistory;
     // try {
