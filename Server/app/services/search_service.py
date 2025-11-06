@@ -32,6 +32,5 @@ def send_data_to_server_search( keywords: list):
         for hit in hits]
         return {"results": results}
     except Exception as e:
-        print("error search :", str(e))
-        return []
+        return {"error": f"Error sending request to search server: {e}"}
         
