@@ -8,7 +8,7 @@ router = APIRouter()
 @router.post("/add")
 def ask(req: MessageAddRequest):
     time_started = time.time()
-    ans,keywords_list,*_ = process_asking(req.request)
+    ans,keywords_list, _ = process_asking(req.request)
     ans = ans["text"]
     print(f" Answer generated: {ans} running time: {time.time() - time_started} seconds")
 
