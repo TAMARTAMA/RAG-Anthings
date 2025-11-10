@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal, Optional
+from typing import Literal, Optional, List, Dict, Any
 from datetime import datetime
 
 class ChatMessage(BaseModel):
@@ -13,6 +13,7 @@ class ChatMessage(BaseModel):
 class MessageAddRequest(BaseModel):
     request: str  
     userId: str
+    index: str
 
 class MessageRateRequest(BaseModel):
     userId: str
@@ -23,3 +24,8 @@ class MessageRateRequest(BaseModel):
 class ProbabilityRequest(BaseModel):
     question: str
     answer: str
+
+class AddIndexRequest(BaseModel):
+    user_id: str
+    index_name: str
+    documents: List[Dict[str, Any]]

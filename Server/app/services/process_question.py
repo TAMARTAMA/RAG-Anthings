@@ -3,14 +3,14 @@ from app.services.search_service import send_data_to_server_search
 from app.models.prompts import system_prompt_keywords, system_prompt_search_q
 from app.config import SERVER_MODEL_URL
 
-def process_asking(question: str ):
+def process_asking(question: str ,index_name:str):
     keywords = send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_keywords)
     print(f" Keywords extracted: {keywords}")
     keywords_list = keywords.get("text", "").split(", ")
     if not keywords_list or keywords_list == [""]:
         return {"text":"No keywords were found that match your question."},keywords
     keywords_list.append(question)
-    search_results = send_data_to_server_search(keywords_list)
+    search_results = send_data_to_server_search(keywords_list,index_name)
     docs_text = "\n\n".join(
     [
         f"[{i+1}] Title: {r.get('title', 'No Title')}\nText: {r.get('text', '')}"
