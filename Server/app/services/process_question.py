@@ -10,7 +10,7 @@ def process_asking(question: str ):
     if not keywords_list or keywords_list == [""]:
         return {"text":"No keywords were found that match your question."},keywords
     keywords_list.append(question)
-    search_results = send_data_to_server_search( keywords_list)
+    search_results = send_data_to_server_search(keywords_list)
     docs_text = "\n\n".join(
     [
         f"[{i+1}] Title: {r.get('title', 'No Title')}\nText: {r.get('text', '')}"
