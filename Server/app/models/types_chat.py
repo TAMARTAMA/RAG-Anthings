@@ -25,7 +25,3 @@ class ProbabilityRequest(BaseModel):
     question: str
     answer: str
 
-class AddIndexRequest(BaseModel):
-    user_id: str
-    index_name: str
-    documents: List[Dict[str, Any]]

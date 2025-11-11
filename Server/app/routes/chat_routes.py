@@ -1,8 +1,14 @@
 from app.models.types_chat import MessageRateRequest, MessageAddRequest,AddIndexRequest
 from app.services.process_question import process_asking
 from app.services.chat_history import update_rate, add_chat
-from app.services.search_service import add_documents_to_index
+from app.services.search_service import add_documents_to_index,create_index_if_not_exists
+from app.services.user_service import add_index_to_user
 from fastapi import APIRouter, Response
+from fastapi import APIRouter, UploadFile, File, Form
+import os
+from io import BytesIO
+from PyPDF2 import PdfReader
+from docx import Document
 import time
 router = APIRouter()
 
@@ -34,32 +40,57 @@ def ask(req: MessageAddRequest):
 def options_handler(path: str):
     return Response(status_code=200)
 
+
 @router.post("/add_index")
-def add_index(req: AddIndexRequest):
+async def add_index(
+    user_id: str = Form(...),
+    index_name: str = Form(...),
+    files: list[UploadFile] = File(...)
+):
     """
-    Route שמקבל בקשה מהמשתמש ליצירת אינדקס חדש:
-    1. מוסיף את המסמכים לאינדקס החדש ב־OpenSearch.
-    2. מריץ תהליך אינדוקס (אם יש צורך).
-    3. מעדכן את רשימת האינדקסים של המשתמש במסד הנתונים.
+    Receives files (txt, pdf, docx), reads their content, converts them to {title, text},
+    and adds the documents to an OpenSearch index.
     """
-    try:
-        # שלב 1: יצירת אינדקס והוספת מסמכים
-        add_documents_to_index(req.index_name, req.documents)
+    documents = []
 
-        # שלב 2: (אופציונלי) הרצת תהליך עיבוד נוסף - embeddings, metadata וכו’
-        # run_indexing_job(req.index_name)
+    for file in files:
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        title = os.path.splitext(file.filename)[0]
+        text = ""
 
-        # שלב 3: (בעתיד) עדכון משתמש במסד הנתונים
-        # add_index_to_user(req.user_id, req.index_name)
+        try:
+            if file_ext == ".txt":
+                text = (await file.read()).decode("utf-8", errors="ignore")
 
-        return {
-            "status": "success",
-            "message": f"Index '{req.index_name}' created and documents added successfully.",
-            "document_count": len(req.documents),
-        }
+            elif file_ext == ".pdf":
+                reader = PdfReader(BytesIO(await file.read()))
+                text = "\n".join(page.extract_text() or "" for page in reader.pages)
 
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+            elif file_ext == ".docx":
+                doc = Document(BytesIO(await file.read()))
+                text = "\n".join(p.text for p in doc.paragraphs)
+
+            else:
+                print(f"Skipping unsupported file type: {file.filename}")
+                continue
+
+            if text.strip():
+                documents.append({"title": title, "text": text})
+
+        except Exception as e:
+            print(f"Error reading {file.filename}: {e}")
+
+    # Add documents to index or create an empty one if none provided
+    if documents:
+        add_documents_to_index(index_name, documents)
+    else:
+        create_index_if_not_exists(index_name)
+
+    # link the index to the user
+    add_index_to_user(user_id, index_name)
+
+    return {
+        "status": "success",
+        "message": f"Index '{index_name}' created ({len(documents)} documents added).",
+        "document_count": len(documents),
+    }

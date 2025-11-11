@@ -1,11 +1,19 @@
 from opensearchpy import OpenSearch
 
+# ----------------------------------------
+# OpenSearch client configuration
+# ----------------------------------------
 client = OpenSearch(
     hosts=[{"host": "localhost", "port": 9200}],
     http_auth=("admin", "MyStrongPassword123!"),
     use_ssl=False
 )
-def send_data_to_server_search( keywords: list,index_name:str):
+
+
+# ----------------------------------------
+# Search for keywords in a given index
+# ----------------------------------------
+def send_data_to_server_search(keywords: list, index_name: str):
     body = {
         "size": 10,
         "query": {
@@ -17,14 +25,15 @@ def send_data_to_server_search( keywords: list,index_name:str):
                             "fields": ["title^2", "text"],
                             "type": "best_fields"
                         }
-                    } for kw in keywords
+                    }
+                    for kw in keywords
                 ],
-                "minimum_should_match": 1  
+                "minimum_should_match": 1
             }
         }
     }
+
     try:
-        
         if client.indices.exists(index=index_name):
             res = client.search(index=index_name, body=body)
         else:
@@ -35,22 +44,20 @@ def send_data_to_server_search( keywords: list,index_name:str):
             {
                 "title": hit["_source"].get("title", "No Title"),
                 "score": hit.get("_score", 0),
-                "url": hit["_source"].get("url", "No URL")  # 👈 נוסף שדה URL
+                "url": hit["_source"].get("url", "No URL")
             }
             for hit in hits
         ]
         return {"results": results}
+
     except Exception as e:
         return {"error": f"Error sending request to search server: {e}"}
-    
-# --------------------------------------------------
-# יצירת אינדקס חדש (אם לא קיים)
-# --------------------------------------------------
+
+
+# ----------------------------------------
+# Create index if it does not exist
+# ----------------------------------------
 def create_index_if_not_exists(index_name: str):
-    """
-    יוצר אינדקס חדש אם הוא לא קיים עדיין.
-    מאפשר לכל משתמש ליצור אינדקס ייחודי משלו.
-    """
     try:
         if not client.indices.exists(index=index_name):
             body = {
@@ -72,13 +79,13 @@ def create_index_if_not_exists(index_name: str):
     except Exception as e:
         print(f"Error creating index {index_name}: {e}")
 
-# --------------------------------------------------
-# הוספת מסמכים לאינדקס
-# --------------------------------------------------
+
+# ----------------------------------------
+# Add documents to index
+# ----------------------------------------
 def add_documents_to_index(index_name: str, documents: list[dict]):
     """
-    מוסיף רשימת מסמכים לאינדקס קיים.
-    כל מסמך הוא מילון, לדוגמה:
+    Each document should be a dict:
     {'title': 'Paris', 'text': 'Capital of France'}
     """
     try:
@@ -90,14 +97,11 @@ def add_documents_to_index(index_name: str, documents: list[dict]):
     except Exception as e:
         print(f"Error indexing documents to {index_name}: {e}")
 
-# --------------------------------------------------
-# מחיקת אינדקס קיים
-# --------------------------------------------------
+
+# ----------------------------------------
+# Delete an existing index
+# ----------------------------------------
 def delete_index(index_name: str):
-    """
-    מוחק אינדקס קיים.
-    שימושי כשצריך לאפס את הנתונים או למחוק אינדקס שגוי.
-    """
     try:
         if client.indices.exists(index=index_name):
             client.indices.delete(index=index_name)
@@ -107,18 +111,14 @@ def delete_index(index_name: str):
     except Exception as e:
         print(f"Error deleting index {index_name}: {e}")
 
-# --------------------------------------------------
-# שליפת רשימת כל האינדקסים במערכת
-# --------------------------------------------------
+
+# ----------------------------------------
+# List all indexes in the system
+# ----------------------------------------
 def list_all_indexes():
-    """
-    מחזיר רשימה של כל האינדקסים הקיימים במערכת OpenSearch.
-    """
     try:
         indexes = list(client.indices.get_alias(index="*").keys())
         return indexes
     except Exception as e:
-        print("Error fetching indexes:", str(e))
+        print(f"Error fetching indexes: {e}")
         return []
-
-
