@@ -94,12 +94,13 @@ async def add_index(
             )
 
         # רק אם הצליח — קישור למשתמש
-        add_index_to_user(user_id, index_name)
+        user_data = add_index_to_user(user_id, index_name)
 
         return {
             "status": "success",
             "message": f"Index '{index_name}' created ({len(documents)} documents added).",
-            "document_count": len(documents)
+            "document_count": len(documents),
+            "user": user_data
         }
 
     except HTTPException:
@@ -113,27 +114,42 @@ async def add_index(
             detail=f"Unexpected error while creating index '{index_name}': {str(e)}"
         )
 
+
 @router.post("/remove_index")
 async def remove_index(data: RemoveIndexRequest):
-    index_name = data.index
-    user_id = data.UserId
     """
     Removes the specified index from OpenSearch and unlinks it from the user.
+    Returns the updated user object so the client can setIndexes(resp.user.indexs).
     """
-    try:
-        # Delete the index from OpenSearch
-        delete_index(index_name)
+    index_name = data.index
+    user_id = data.UserId
 
-        # Unlink the index from the user
-        remove_index_from_user(user_id, index_name)
+    try:
+        # 1) מחיקת האינדקס בפועל מ-OpenSearch; אם נכשל – לזרוק חריגה
+        # חשוב: delete_index צריך לזרוק חריגה אם המחיקה לא הצליחה.
+        deleted = delete_index(index_name)  # אמור להחזיר True/False או לזרוק חריגה
+        if deleted is not True:
+            # במקרה שהפונקציה שלך מחזירה False כאשר האינדקס לא קיים – נחליט האם לעצור או להמשיך.
+            # כאן נבחר לעצור ולהחזיר שגיאה מפורשת:
+            raise Exception(f"Index '{index_name}' does not exist or could not be deleted.")
+
+        # 2) עדכון המשתמש והחזרת אובייקט המשתמש המעודכן
+        # ודא שהפונקציה מחזירה dict עם המפתח "indexs"
+        user = remove_index_from_user(user_id, index_name)
 
         return {
             "status": "success",
-            "message": f"Index '{index_name}' removed successfully."
+            "message": f"Index '{index_name}' removed successfully.",
+            "user": user 
         }
 
+    except HTTPException:
+        # להעביר חריגות HTTP כפי שהן
+        raise
     except Exception as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }   
+        # להפוך כל כשל לשגיאת HTTP ברורה ללקוח
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to remove index '{index_name}': {str(e)}"
+        )
+   

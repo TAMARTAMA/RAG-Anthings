@@ -126,19 +126,29 @@ def add_documents_to_index(index_name: str, documents: list[dict]) -> bool:
 # ----------------------------------------
 def delete_index(index_name: str) -> bool:
     """
-    מוחק אינדקס קיים, אם קיים.
+    מוחק אינדקס קיים מ־OpenSearch.
+    מחזיר True אם נמחק בהצלחה, False אם לא נמצא.
+    במקרי כשל – זורק חריגה עם פירוט השגיאה.
     """
     try:
         if client.indices.exists(index=index_name):
-            client.indices.delete(index=index_name)
-            print(f"🗑️ Deleted index: {index_name}")
-            return True
+            response = client.indices.delete(index=index_name)
+            acknowledged = response.get("acknowledged", False)
+
+            if acknowledged:
+                print(f"🗑️ Deleted index: {index_name}")
+                return True
+            else:
+                # OpenSearch החזיר תגובה אך לא אישר את המחיקה
+                raise Exception(f"Delete request for index '{index_name}' not acknowledged by OpenSearch.")
+
         else:
             print(f"ℹ️ Index '{index_name}' does not exist.")
             return False
+
     except Exception as e:
         print(f"❌ Error deleting index '{index_name}': {e}")
-        raise
+        raise Exception(f"Failed to delete index '{index_name}': {str(e)}")
 
 
 # ----------------------------------------

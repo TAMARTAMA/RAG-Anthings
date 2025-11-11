@@ -1,7 +1,7 @@
 import { User } from "lucide-react";
 
 // const PORT_MAIN_SERVER = "https://television-man-recommendations-cast.trycloudflare.com";
-const PORT_MAIN_SERVER = "http://localhost:8006";
+const PORT_MAIN_SERVER = "http://localhost:8004";
 
 export type AuthUser = { id: string; indexs: string[] };
 export type AuthResp = { user: AuthUser; access_token: string; token_type: string };
@@ -50,6 +50,7 @@ export async function addIndex(token: string, userId: string, index: string, fil
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
+  
 
   if (!r.ok) throw new Error(await r.text());
   return r.json();

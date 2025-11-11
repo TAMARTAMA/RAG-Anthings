@@ -45,11 +45,26 @@ def add_index_to_user(user_id: str, index_name: str) -> Dict[str, Any]:
     _save(d)
     return u
 
+
 def remove_index_from_user(user_id: str, index_name: str) -> Dict[str, Any]:
+    """
+    מסיר אינדקס מרשימת האינדקסים של המשתמש ומחזיר את אובייקט המשתמש המעודכן.
+    """
     d = _load()
     u = d.get(user_id)
-    if not u: raise ValueError("user not found")
+    if not u:
+        raise ValueError("user not found")
+
+    # וידוא שקיים מפתח indexs
+    if "indexs" not in u or not isinstance(u["indexs"], list):
+        u["indexs"] = []
+
+    # הסרת האינדקס
     u["indexs"] = [ix for ix in u["indexs"] if ix != index_name]
+
+    # עדכון ושמירה
     d[user_id] = u
     _save(d)
+
+    # החזרה של המשתמש המעודכן
     return u
