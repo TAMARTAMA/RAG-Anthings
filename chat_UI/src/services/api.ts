@@ -1,7 +1,58 @@
 
-const PORT_MAIN_SERVER = "https://television-man-recommendations-cast.trycloudflare.com";
+// const PORT_MAIN_SERVER = "https://television-man-recommendations-cast.trycloudflare.com";
+const PORT_MAIN_SERVER = "http://localhost:8003";
 
+export type AuthUser = { id: string; indexs: string[] };
+export type AuthResp = { user: AuthUser; access_token: string; token_type: string };
 
+export async function signup(userId: string, password: string): Promise<AuthResp> {
+  const r = await fetch(`${PORT_MAIN_SERVER}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, password })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+export async function login(userId: string, password: string): Promise<AuthResp> {
+  const r = await fetch(`${PORT_MAIN_SERVER}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, password })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+export async function getIndexes(token: string): Promise<string[]> {
+  const r = await fetch(`${PORT_MAIN_SERVER}/auth/indexes`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!r.ok) throw new Error(await r.text());
+  const data = await r.json();
+  return data.indexs || ["wikipedia"];
+}
+
+export async function addIndex(token: string, index: string) {
+  const r = await fetch(`${PORT_MAIN_SERVER}/auth/indexes/add`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ index })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json() as Promise<{ user: AuthUser }>;
+}
+
+export async function removeIndex(token: string, index: string) {
+  const r = await fetch(`${PORT_MAIN_SERVER}/auth/indexes/remove`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ index })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json() as Promise<{ user: AuthUser }>;
+}
 export async function rateMessageToAPI(userId: string, messageId: string, rating: 'like' | 'dislike' | null) {
   try {
     const response = await fetch(`${PORT_MAIN_SERVER}/api/message/rate`, {
