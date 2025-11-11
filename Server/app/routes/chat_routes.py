@@ -1,8 +1,9 @@
+from typing import Optional
 from app.models.types_chat import MessageRateRequest, MessageAddRequest,AddIndexRequest
 from app.services.process_question import process_asking
 from app.services.chat_history import update_rate, add_chat
-from app.services.search_service import add_documents_to_index,create_index_if_not_exists
-from app.services.user_service import add_index_to_user
+from app.services.search_service import add_documents_to_index,create_index_if_not_exists,delete_index
+from app.services.user_service import add_index_to_user,remove_index_from_user
 from fastapi import APIRouter, Response
 from fastapi import APIRouter, UploadFile, File, Form
 import os
@@ -45,7 +46,7 @@ def options_handler(path: str):
 async def add_index(
     user_id: str = Form(...),
     index_name: str = Form(...),
-    files: list[UploadFile] = File(...)
+    files: Optional[list[UploadFile]] = File(None)
 ):
     """
     Receives files (txt, pdf, docx), reads their content, converts them to {title, text},
@@ -94,3 +95,29 @@ async def add_index(
         "message": f"Index '{index_name}' created ({len(documents)} documents added).",
         "document_count": len(documents),
     }
+
+@router.post("/remove_index")
+async def remove_index(    
+    user_id: str = Form(...),
+    index_name: str = Form(...),
+):
+    """
+    Removes the specified index from OpenSearch and unlinks it from the user.
+    """
+    try:
+        # Delete the index from OpenSearch
+        delete_index(index_name)
+
+        # Unlink the index from the user
+        remove_index_from_user(user_id, index_name)
+
+        return {
+            "status": "success",
+            "message": f"Index '{index_name}' removed successfully."
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }   
