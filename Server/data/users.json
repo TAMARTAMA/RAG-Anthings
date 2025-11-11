@@ -34,5 +34,19 @@
     "indexs": [
       "wikipedia"
     ]
+  },
+  "bbb": {
+    "id": "bbb",
+    "password_hash": "$2b$12$p4cOt.6Lr.Mmu1NajaNAG.c7EuK7JGhItANSlA6sR5KtcCYC98jbW",
+    "indexs": [
+      "wikipedia"
+    ]
+  },
+  "mmm": {
+    "id": "mmm",
+    "password_hash": "$2b$12$5VDM38LIhCh5fYRiflrnyOzWTRy6y0K7wZegnZ3Uk0qvWyNtvUK8S",
+    "indexs": [
+      "wikipedia"
+    ]
   }
 }

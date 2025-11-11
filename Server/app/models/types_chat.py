@@ -24,4 +24,6 @@ class MessageRateRequest(BaseModel):
 class ProbabilityRequest(BaseModel):
     question: str
     answer: str
-
+class RemoveIndexRequest(BaseModel):
+    index: str
+    UserId: str

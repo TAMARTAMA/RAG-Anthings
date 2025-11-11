@@ -1,11 +1,11 @@
 from typing import Optional
-from app.models.types_chat import MessageRateRequest, MessageAddRequest,AddIndexRequest
+from app.models.types_chat import MessageRateRequest, MessageAddRequest,RemoveIndexRequest
 from app.services.process_question import process_asking
 from app.services.chat_history import update_rate, add_chat
 from app.services.search_service import add_documents_to_index,create_index_if_not_exists,delete_index
 from app.services.user_service import add_index_to_user,remove_index_from_user
 from fastapi import APIRouter, Response
-from fastapi import APIRouter, UploadFile, File, Form
+from fastapi import APIRouter, UploadFile, File, Form,HTTPException
 import os
 from io import BytesIO
 from PyPDF2 import PdfReader
@@ -49,28 +49,28 @@ async def add_index(
     files: Optional[list[UploadFile]] = File(None)
 ):
     """
-    Receives files (txt, pdf, docx), reads their content, converts them to {title, text},
-    and adds the documents to an OpenSearch index.
+    מקבל קבצים (txt, pdf, docx), ממיר אותם למסמכים ומנסה ליצור אינדקס חדש ב־OpenSearch.
+    אם לא נוצר אינדקס בהצלחה — לא יקושר למשתמש, ותוחזר שגיאה ללקוח.
     """
     documents = []
+    if files is None:
+        files = []
 
-    for file in files:
-        file_ext = os.path.splitext(file.filename)[1].lower()
-        title = os.path.splitext(file.filename)[0]
-        text = ""
+    try:
+        # קריאת קבצים
+        for file in files:
+            file_ext = os.path.splitext(file.filename)[1].lower()
+            title = os.path.splitext(file.filename)[0]
+            text = ""
 
-        try:
             if file_ext == ".txt":
                 text = (await file.read()).decode("utf-8", errors="ignore")
-
             elif file_ext == ".pdf":
                 reader = PdfReader(BytesIO(await file.read()))
                 text = "\n".join(page.extract_text() or "" for page in reader.pages)
-
             elif file_ext == ".docx":
                 doc = Document(BytesIO(await file.read()))
                 text = "\n".join(p.text for p in doc.paragraphs)
-
             else:
                 print(f"Skipping unsupported file type: {file.filename}")
                 continue
@@ -78,29 +78,45 @@ async def add_index(
             if text.strip():
                 documents.append({"title": title, "text": text})
 
-        except Exception as e:
-            print(f"Error reading {file.filename}: {e}")
+        # ניסיון ליצור אינדקס ב־OpenSearch
+        try:
+            if documents:
+                add_documents_to_index(index_name, documents)
+            else:
+                create_index_if_not_exists(index_name)
 
-    # Add documents to index or create an empty one if none provided
-    if documents:
-        add_documents_to_index(index_name, documents)
-    else:
-        create_index_if_not_exists(index_name)
+        except (Exception) as es_err:
+            # הדפסה לשרת + עצירה
+            print(f"❌ OpenSearch error while creating index '{index_name}': {es_err}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create index '{index_name}' in OpenSearch: {str(es_err)}"
+            )
 
-    # link the index to the user
-    add_index_to_user(user_id, index_name)
+        # רק אם הצליח — קישור למשתמש
+        add_index_to_user(user_id, index_name)
 
-    return {
-        "status": "success",
-        "message": f"Index '{index_name}' created ({len(documents)} documents added).",
-        "document_count": len(documents),
-    }
+        return {
+            "status": "success",
+            "message": f"Index '{index_name}' created ({len(documents)} documents added).",
+            "document_count": len(documents)
+        }
+
+    except HTTPException:
+        # כבר טופלה שגיאה מ־OpenSearch — רק להעביר הלאה
+        raise
+    except Exception as e:
+        # שגיאה כללית (למשל בעיבוד קבצים)
+        print(f"❌ General error in add_index: {type(e).__name__} - {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error while creating index '{index_name}': {str(e)}"
+        )
 
 @router.post("/remove_index")
-async def remove_index(    
-    user_id: str = Form(...),
-    index_name: str = Form(...),
-):
+async def remove_index(data: RemoveIndexRequest):
+    index_name = data.index
+    user_id = data.UserId
     """
     Removes the specified index from OpenSearch and unlinks it from the user.
     """

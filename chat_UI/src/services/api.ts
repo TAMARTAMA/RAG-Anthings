@@ -1,6 +1,7 @@
+import { User } from "lucide-react";
 
 // const PORT_MAIN_SERVER = "https://television-man-recommendations-cast.trycloudflare.com";
-const PORT_MAIN_SERVER = "http://localhost:8003";
+const PORT_MAIN_SERVER = "http://localhost:8006";
 
 export type AuthUser = { id: string; indexs: string[] };
 export type AuthResp = { user: AuthUser; access_token: string; token_type: string };
@@ -34,21 +35,32 @@ export async function getIndexes(token: string): Promise<string[]> {
   return data.indexs || ["wikipedia"];
 }
 
-export async function addIndex(token: string, index: string) {
-  const r = await fetch(`${PORT_MAIN_SERVER}/auth/indexes/add`, {
+export async function addIndex(token: string, userId: string, index: string, files?: File[]) {
+  const form = new FormData();
+  form.append("user_id", userId);
+  form.append("index_name", index);
+  if (files) {
+    for (const f of files) {
+      form.append("files", f);
+    }
+  }
+
+  const r = await fetch(`${PORT_MAIN_SERVER}/api/message/add_index`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ index })
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
   });
+
   if (!r.ok) throw new Error(await r.text());
-  return r.json() as Promise<{ user: AuthUser }>;
+  return r.json();
 }
 
-export async function removeIndex(token: string, index: string) {
-  const r = await fetch(`${PORT_MAIN_SERVER}/auth/indexes/remove`, {
+
+export async function removeIndex(token: string, index: string, UserId: string) {
+  const r = await fetch(`${PORT_MAIN_SERVER}/api/message/remove_index`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ index })
+    body: JSON.stringify({ index ,UserId}),
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json() as Promise<{ user: AuthUser }>;

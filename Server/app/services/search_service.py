@@ -1,4 +1,4 @@
-from opensearchpy import OpenSearch
+from opensearchpy import OpenSearch, TransportError, AuthorizationException
 
 # ----------------------------------------
 # OpenSearch client configuration
@@ -9,11 +9,13 @@ client = OpenSearch(
     use_ssl=False
 )
 
-
 # ----------------------------------------
 # Search for keywords in a given index
 # ----------------------------------------
 def send_data_to_server_search(keywords: list, index_name: str):
+    """
+    מבצע חיפוש לפי רשימת מילות מפתח באינדקס מסוים.
+    """
     body = {
         "size": 10,
         "query": {
@@ -37,6 +39,7 @@ def send_data_to_server_search(keywords: list, index_name: str):
         if client.indices.exists(index=index_name):
             res = client.search(index=index_name, body=body)
         else:
+            # חיפוש בברירת מחדל אם האינדקס לא קיים
             res = client.search(index="wikipedia", body=body)
 
         hits = res.get("hits", {}).get("hits", [])
@@ -57,7 +60,12 @@ def send_data_to_server_search(keywords: list, index_name: str):
 # ----------------------------------------
 # Create index if it does not exist
 # ----------------------------------------
-def create_index_if_not_exists(index_name: str):
+def create_index_if_not_exists(index_name: str) -> bool:
+    """
+    יוצר אינדקס חדש אם אינו קיים.
+    מחזיר True אם הצליח, אחרת מעלה Exception.
+    """
+    print(f"🔗 Connected to: {client.transport.hosts}")
     try:
         if not client.indices.exists(index=index_name):
             body = {
@@ -72,53 +80,90 @@ def create_index_if_not_exists(index_name: str):
                     }
                 }
             }
-            client.indices.create(index=index_name, body=body)
-            print(f"Created new index: {index_name}")
+
+            response = client.indices.create(index=index_name, body=body)
+            if not response.get("acknowledged"):
+                raise Exception(f"Index creation for '{index_name}' not acknowledged.")
+            print(f"✅ Created new index: {index_name}")
+            return True
         else:
-            print(f"Index '{index_name}' already exists.")
+            print(f"ℹ️ Index '{index_name}' already exists.")
+            return True
+
+    except AuthorizationException as e:
+        print(f"🚫 Authorization error: {e}")
+        raise
+    except TransportError as e:
+        print(f"❌ OpenSearch transport error while creating '{index_name}': {e}")
+        raise
     except Exception as e:
-        print(f"Error creating index {index_name}: {e}")
+        print(f"❌ General error creating index '{index_name}': {e}")
+        raise
 
 
 # ----------------------------------------
 # Add documents to index
 # ----------------------------------------
-def add_documents_to_index(index_name: str, documents: list[dict]):
+def add_documents_to_index(index_name: str, documents: list[dict]) -> bool:
     """
-    Each document should be a dict:
+    מוסיף מסמכים לאינדקס. כל מסמך הוא מבנה מסוג:
     {'title': 'Paris', 'text': 'Capital of France'}
     """
     try:
         create_index_if_not_exists(index_name)
         for doc in documents:
             client.index(index=index_name, id=doc.get("title"), body=doc)
-            client.indices.refresh(index=index_name)
-        print(f"Added {len(documents)} documents to index '{index_name}'")
+        client.indices.refresh(index=index_name)
+        print(f"✅ Added {len(documents)} documents to index '{index_name}'")
+        return True
     except Exception as e:
-        print(f"Error indexing documents to {index_name}: {e}")
+        print(f"❌ Error indexing documents to '{index_name}': {e}")
+        raise
 
 
 # ----------------------------------------
 # Delete an existing index
 # ----------------------------------------
-def delete_index(index_name: str):
+def delete_index(index_name: str) -> bool:
+    """
+    מוחק אינדקס קיים, אם קיים.
+    """
     try:
         if client.indices.exists(index=index_name):
             client.indices.delete(index=index_name)
-            print(f"Deleted index: {index_name}")
+            print(f"🗑️ Deleted index: {index_name}")
+            return True
         else:
-            print(f"Index '{index_name}' does not exist.")
+            print(f"ℹ️ Index '{index_name}' does not exist.")
+            return False
     except Exception as e:
-        print(f"Error deleting index {index_name}: {e}")
+        print(f"❌ Error deleting index '{index_name}': {e}")
+        raise
 
 
 # ----------------------------------------
 # List all indexes in the system
 # ----------------------------------------
-def list_all_indexes():
+def list_all_indexes() -> list[str]:
+    """
+    מחזיר רשימה של כל האינדקסים הקיימים במערכת.
+    """
     try:
         indexes = list(client.indices.get_alias(index="*").keys())
+        print(f"📦 Found {len(indexes)} indexes.")
         return indexes
     except Exception as e:
-        print(f"Error fetching indexes: {e}")
+        print(f"❌ Error fetching indexes: {e}")
         return []
+
+
+# ----------------------------------------
+# Debug mode (manual execution)
+# ----------------------------------------
+if __name__ == "__main__":
+    print("Existing indexes:", list_all_indexes())
+    try:
+        # דוגמת הרצה
+        create_index_if_not_exists("test-index")
+    except Exception as err:
+        print(f"⚠️ Exception caught: {err}")

@@ -77,16 +77,18 @@ export default function App() {
     setIndexes(ix);
   }
 
+
   async function onAddIndex() {
-    const name = newIndex.trim();
-    if (!name) return;
-    const resp = await addIndex(token, name);
-    setIndexes(resp.user.indexs);
-    setNewIndex("");
-  }
+  const name = newIndex.trim();
+  if (!name) return;
+
+  const resp = await addIndex(token, userId, name);
+  setIndexes(resp.user.indexs);
+  setNewIndex("");
+}
 
   async function onRemoveIndex(ix: string) {
-    const resp = await removeIndex(token, ix);
+    const resp = await removeIndex(token, ix, userId);
     setIndexes(resp.user.indexs);
   }
 
