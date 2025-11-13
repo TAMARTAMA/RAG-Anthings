@@ -17,7 +17,7 @@ app.add_middleware(
 
 app.include_router(chat_routes.router, prefix="/api/message")
 app.include_router(auth_routes.router)
-
+app.include_router(prob_route.router, prefix="/api/prob")
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host=HOST_SERVER, port=PORT_SERVER)

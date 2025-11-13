@@ -26,7 +26,7 @@
     "password_hash": "$2b$12$WZ06vo2Q3HSMEL04Zb7UZuuy4ILerQR427cqG/Hn8IZY3yksuVyiq",
     "indexs": [
       "wikipedia",
-      "ccc"
+      "aaaa"
     ]
   },
   "אלכס": {
@@ -48,6 +48,35 @@
     "password_hash": "$2b$12$5VDM38LIhCh5fYRiflrnyOzWTRy6y0K7wZegnZ3Uk0qvWyNtvUK8S",
     "indexs": [
       "wikipedia"
+    ]
+  },
+  "mali": {
+    "id": "mali",
+    "password_hash": "$2b$12$XLJq2am8LW35XqdZlHPS7uh0jzo97cpOnGK1CqkYckv4KxBiqdnhK",
+    "indexs": [
+      "wikipedia"
+    ]
+  },
+  "nnn": {
+    "id": "nnn",
+    "password_hash": "$2b$12$N1yCCDBLr.UdlTGKtx9W1.qAEaTpQMteQWsZXKPyFd0b/.hQxOrxy",
+    "indexs": [
+      "wikipedia"
+    ]
+  },
+  "tamar123": {
+    "id": "tamar123",
+    "password_hash": "$2b$12$qYFBbifI18FxsbfW39/hIupwKMqBHl6f008JsuLgMwzFv8Dg/fMxS",
+    "indexs": [
+      "wikipedia"
+    ]
+  },
+  "aaa9": {
+    "id": "aaa9",
+    "password_hash": "$2b$12$XYkHvOrY5ZvAEfF8Jei1/.caY8kIS/kVaNRLwtGkKJS.E.Xud3Z/e",
+    "indexs": [
+      "wikipedia",
+      "tamar"
     ]
   }
 }

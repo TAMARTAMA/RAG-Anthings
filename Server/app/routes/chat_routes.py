@@ -1,11 +1,13 @@
 from typing import Optional
 from app.models.types_chat import MessageRateRequest, MessageAddRequest,RemoveIndexRequest
 from app.services.process_question import process_asking
-from app.services.chat_history import update_rate, add_chat
+from app.services.chat_history import update_rate, create_new_chat, add_message_to_chat,get_chat_by_id
 from app.services.search_service import add_documents_to_index,create_index_if_not_exists,delete_index
 from app.services.user_service import add_index_to_user,remove_index_from_user
-from fastapi import APIRouter, Response
-from fastapi import APIRouter, UploadFile, File, Form,HTTPException
+from fastapi import APIRouter, Response, Header, Query
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
+from app.auth.tokens import verify_token
+from app.services.chat_history import get_chats_by_user
 import os
 from io import BytesIO
 from PyPDF2 import PdfReader
@@ -16,26 +18,60 @@ router = APIRouter()
 @router.post("/add")
 def ask(req: MessageAddRequest):
     time_started = time.time()
-    ans,keywords_list,search_res = process_asking(req.request,req.index)
-    ans = ans["text"]
-    print(f" Answer generated: {ans} running time: {time.time() - time_started} seconds")
-    id = add_chat(req.request, ans,keywords_list)
-    linksForMessage = [
-        {"title": hit.get("title", "No Title"), "url": hit.get("url", "#")}
-        for hit in search_res
-    ]
-    return {"answer": ans, "messegeId": id, "links": linksForMessage}
+
+    answer_obj, keywords_list, search_res = process_asking(req.request, req.index)
+    answer_text = answer_obj["text"]
+
+    linksForMessage = []
+    hits = search_res.get("results", search_res) if isinstance(search_res, dict) else search_res
+
+    for hit in hits:
+        if isinstance(hit, dict):
+            linksForMessage.append({
+                "title": hit.get("title", "No Title"),
+                "url": hit.get("url", "#")
+            })
+        else:
+            linksForMessage.append({
+                "title": hit,
+                "url": hit
+            })
+    print("REQUEST CHAT ID: ", req.chatId)
+
+    if not req.chatId:
+        chat_id = create_new_chat(req.request, answer_text, req.userId, keywords_list, linksForMessage)
+    else:
+        chat_id = add_message_to_chat(req.chatId, req.request, answer_text, linksForMessage)
+
+    return {
+        "answer": answer_text,
+        "chatId": chat_id,
+        "links": linksForMessage
+    }
+
+@router.get("/history")
+def get_user_history(
+    userId: str= Query(...),
+    authorization: str = Header(None)
+):
+    # if not authorization or not authorization.startswith("Bearer "):
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid token")
+
+    # token = authorization.split("Bearer ")[1]
+
+    # # כאן תוכל לבדוק שה-token תואם ל-userId
+    # # לדוגמה:
+    # if not verify_token(token, userId):
+    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Token does not match user")
+
+    chats = get_chats_by_user(userId)
+    return {"userId": userId, "chats": chats}
+
 
 @router.post("/rate")
 def rate(req: MessageRateRequest):
     update_rate(req.messageId, req.rating)
     return {"status": "ok"}
-
-@router.post("/addtest")
-def ask(req: MessageAddRequest):
-    ans,keywords_list, search_results = process_asking(req.request)
-    id = add_chat(req.request, ans,keywords_list)
-    return {"answer": ans, "messegeId": id ,"keywords": keywords_list ,"search_results": search_results}
 
 @router.options("/{path:path}")
 def options_handler(path: str):
@@ -152,4 +188,11 @@ async def remove_index(data: RemoveIndexRequest):
             status_code=500,
             detail=f"Failed to remove index '{index_name}': {str(e)}"
         )
+    
+@router.get("/chat/{chat_id}")
+def get_chat(chat_id: str):
+    chat = get_chat_by_id(chat_id)
+    if chat is None:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return chat
    

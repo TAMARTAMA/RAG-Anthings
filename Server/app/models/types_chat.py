@@ -14,6 +14,7 @@ class MessageAddRequest(BaseModel):
     request: str  
     userId: str
     index: str
+    chatId: str | None = None
 
 class MessageRateRequest(BaseModel):
     userId: str

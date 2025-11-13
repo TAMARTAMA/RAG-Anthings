@@ -83,27 +83,50 @@ export async function rateMessageToAPI(userId: string, messageId: string, rating
 
 export async function sendMessageToAPI(
   message: string,
-  userId: string
-): Promise<{ message: string; messageId?: string; chatHistory?: any, links?: { title: string; url: string }[] }>  {
+  userId: string,
+  index: string,
+  chatId?: string | null
+): Promise<{ 
+  message: string; 
+  chatId: string; 
+  links?: { title: string; url: string }[]; 
+}> 
+{
   try {
     const response = await fetch(`${PORT_MAIN_SERVER}/api/message/add`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ request: message, userId }),
+      body: JSON.stringify({
+        request: message,
+        userId,
+        index,
+        chatId: chatId || null   // ← חשוב: אם "pending" מגיע, שולחים null
+      }),
     });
+
     const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to send message');
+      throw new Error(data.error || "Failed to send message");
     }
-    
-    return { message: data.answer || 'Message sent!', messageId: data.messageId ,chatHistory: data.chatHistory,
-    links: data.links || [],};
+
+    return {
+      message: data.answer,
+      chatId: data.chatId,
+      links: data.links || [],
+    };
+
   } catch (error: any) {
-    return { message: `Error: ${error.message}` };
+    return {
+      message: `Error: ${error.message}`,
+      chatId: "",
+      links: [],
+    };
   }
 }
+
 export async function getProbabilityFromServer(
   question: string,
   answer: string
@@ -128,9 +151,27 @@ export async function getProbabilityFromServer(
     return { error: err.message };
   }
 }
-// Optionally, fetch the full chat history after sending a message
-    // let chatHistory;
-    // try {
-    //   const historyRes = await fetch(PORT_MAIN_SERVER+`api/message/history?userId=${encodeURIComponent(userId)}`);
-    //   chatHistory = await historyRes.json();
-    // } catch {}
+export async function getChatHistory(userId: string, token: string) {
+  const res = await fetch(`${PORT_MAIN_SERVER}/api/message/history?userId=${userId}`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) throw new Error("Failed to load chat history");
+  return res.json();
+}
+
+export async function getSingleChat(chatId: string, token: string) {
+  const res = await fetch(`${PORT_MAIN_SERVER}/api/message/chat/${chatId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    }
+  });
+
+  if (!res.ok) throw new Error("Failed to load chat");
+
+  return res.json();
+}

@@ -1,159 +1,260 @@
-// import React, { useState } from 'react';
-// import WelcomeScreen from './components/WelcomeScreen';
-// import ChatSidebar from './components/ChatSidebar';
-// import ChatInterface from './components/ChatInterface';
-// import { useChats } from './hooks/useChats';
+// import React, { useEffect, useMemo, useState } from "react";
+// import WelcomeScreen from "./components/WelcomeScreen";
+// import ChatSidebar from "./components/ChatSidebar";
+// import ChatInterface from "./components/ChatInterface";
+// import { useChats } from "./hooks/useChats";
+// import HeaderBar from "./components/HeaderBar";
+// import LoginModal from "./components/LoginModal";
+// import IndexesDrawer from "./components/IndexesDrawer";
+// import IndexSelect from "./components/IndexSelect";
 
-// function App() {
+// function getStored(key: string) {
+//   try { return localStorage.getItem(key); } catch { return null; }
+// }
+// function setStored(key: string, val: string | null) {
+//   try { val == null ? localStorage.removeItem(key) : localStorage.setItem(key, val); } catch {}
+// }
+
+// export default function App() {
+//   // Always show Welcome first
 //   const [showWelcome, setShowWelcome] = useState(true);
+
+//   // Auth state
+//   const [token, setToken] = useState<string | null>(() => getStored("token"));
+//   const [userId, setUserId] = useState<string | null>(() => getStored("userId"));
+
+//   // Overlays
+//   const [showLogin, setShowLogin] = useState(false);
+//   const [showIndexes, setShowIndexes] = useState(false);
+
+//   // Chat logic
 //   const {
-//     chats,
-//     activeChat,
-//     isLoading,
-//     createNewChat,
-//     sendMessage,
-//     selectChat,
-//     deleteChat,
-//     rateMessage,
+//     chats, activeChat, isLoading,
+//     createNewChat, sendMessage, selectChat, deleteChat, rateMessage,
 //   } = useChats();
 
+//   useEffect(() => setStored("token", token), [token]);
+//   useEffect(() => setStored("userId", userId), [userId]);
+
+//   const isAuthed = useMemo(() => !!token && !!userId, [token, userId]);
+
 //   const handleStartChat = () => {
-//     setShowWelcome(false);
+//     if (showWelcome) setShowWelcome(false);
 //     createNewChat();
 //   };
 
-//   if (showWelcome) {
-//     return <WelcomeScreen onStartChat={handleStartChat} />;
-//   }
+//   // Login success: get token + userId from modal
+//   const handleLoginSuccess = (t: string, uid: string) => {
+//     setToken(t);
+//     setUserId(uid);
+//     setShowLogin(false);
+//     if (showWelcome) {
+//       setShowWelcome(false);
+//       createNewChat();
+//     }
+//   };
+
+//   const handleLogout = () => {
+//     setToken(null);
+//     setUserId(null);
+//     setShowWelcome(true);
+//   };
 
 //   return (
-//     <div className="h-screen bg-gray-50 flex" dir="rtl">
-//       <ChatSidebar
-//         chats={chats}
-//         activeChat={activeChat}
-//         onNewChat={createNewChat}
-//         onSelectChat={selectChat}
-//         onDeleteChat={deleteChat}
+//     <div className="h-screen flex flex-col bg-gray-50" dir="ltr">
+//       <HeaderBar
+//         isAuthed={isAuthed}
+//         onLoginClick={() => setShowLogin(true)}
+//         onLogoutClick={handleLogout}
+//         onIndexesClick={() => setShowIndexes(true)}
 //       />
 
-//       <ChatInterface
-//         activeChat={activeChat}
-//         isLoading={isLoading}
-//         onSendMessage={sendMessage}
-//         onRateMessage={rateMessage}
+//       {showWelcome ? (
+//         <div className="flex-1">
+//           <WelcomeScreen onStartChat={handleStartChat} />
+//         </div>
+//       ) : (
+//         <div className="flex flex-1">
+//           <ChatSidebar
+//             chats={chats}
+//             activeChat={activeChat}
+//             onNewChat={createNewChat}
+//             onSelectChat={selectChat}
+//             onDeleteChat={deleteChat}
+//           />
+//           <ChatInterface
+//             activeChat={activeChat}
+//             isLoading={isLoading}
+//             onSendMessage={sendMessage}
+//             onRateMessage={rateMessage}
+//           />
+//         </div>
+//       )}
+
+//       <LoginModal
+//         open={showLogin}
+//         onClose={() => setShowLogin(false)}
+//         onSuccess={handleLoginSuccess} // (token, userId)
+//       />
+
+//       <IndexesDrawer
+//         open={showIndexes}
+//         onClose={() => setShowIndexes(false)}
+//         token={token}
+//         userId={userId}
 //       />
 //     </div>
 //   );
 // }
+import React, { useEffect, useMemo, useState } from "react";
+import WelcomeScreen from "./components/WelcomeScreen";
+import ChatSidebar from "./components/ChatSidebar";
+import ChatInterface from "./components/ChatInterface";
+import useChats from "./hooks/useChats";
+import HeaderBar from "./components/HeaderBar";
+import LoginModal from "./components/LoginModal";
+import IndexesDrawer from "./components/IndexesDrawer";
+import IndexSelect from "./components/IndexSelect";
 
-// export default App;
-
-// src/App.tsx
-import { useEffect, useState } from "react";
-import Login from "./components/Login";
-import { getIndexes, addIndex, removeIndex } from "./services/api";
-
-export default function App() {
-  // טוקן כמחרוזת (ריקה כשאין)
-  const [token, setToken] = useState<string>(localStorage.getItem("token") ?? "");
-  const [userId, setUserId] = useState<string>(localStorage.getItem("userId") ?? "");
-  const [indexes, setIndexes] = useState<string[]>([]);
-  const [newIndex, setNewIndex] = useState<string>("");
-
-  // אחרי שיש טוקן—טען רשימת אינדקסים
-  useEffect(() => {
-    if (!token) return;
-    getIndexes(token)
-      .then(setIndexes)
-      .catch(() => setIndexes(["wikipedia"]));
-  }, [token]);
-
-  // callback מה-Login
-  function onAuth(t: string, uid: string, ix: string[]) {
-    localStorage.setItem("token", t);
-    localStorage.setItem("userId", uid);
-    setToken(t);
-    setUserId(uid);
-    setIndexes(ix);
-  }
-
-
-  async function onAddIndex() {
-  const name = newIndex.trim();
-  if (!name) return;
-
-  const resp = await addIndex(token, userId, name);
-  setIndexes(resp.user.indexs);
-  setNewIndex("");
+/** Simple localStorage helpers */
+function getStored(key: string) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function setStored(key: string, val: string | null) {
+  try { val == null ? localStorage.removeItem(key) : localStorage.setItem(key, val); } catch {}
 }
 
-  async function onRemoveIndex(ix: string) {
-    const resp = await removeIndex(token, ix, userId);
-    setIndexes(resp.user.indexs);
-  }
+export default function App() {
+  // Always start with the Welcome screen
+  const [showWelcome, setShowWelcome] = useState(true);
 
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    setToken("");
-    setUserId("");
-    setIndexes([]);
-  }
+  // Auth state
+  const [token, setToken] = useState<string | null>(() => getStored("token"));
+  const [userId, setUserId] = useState<string | null>(() => getStored("userId"));
 
-  // אם אין טוקן—מציגים Login
-  if (!token || !userId) {
-    return <Login onAuth={onAuth} />;
-  }
+
+  // Overlays
+  const [showLogin, setShowLogin] = useState(false);
+  const [showIndexes, setShowIndexes] = useState(false);
+
+  // Active index (persisted)
+  const [activeIndex, setActiveIndex] = useState<string>(() => getStored("activeIndex") || "wikipedia");
+  useEffect(() => setStored("activeIndex", activeIndex), [activeIndex]);
+  const [indexesVersion, setIndexesVersion] = useState(0);
+  const notifyIndexesChanged = () => setIndexesVersion(v => v + 1);
+
+  // Chat logic
+  const {
+  chats,
+  activeChat,
+  isLoading,
+  createNewChat,
+  sendMessage,
+  selectChat,
+  deleteChat,
+  rateMessage,
+  clearChats
+} = useChats(userId, token);
+
+  // Persist auth
+  useEffect(() => setStored("token", token), [token]);
+  useEffect(() => setStored("userId", userId), [userId]);
+
+  const isAuthed = useMemo(() => !!token && !!userId, [token, userId]);
+
+  const handleStartChat = () => {
+    if (showWelcome) setShowWelcome(false);
+    createNewChat();
+  };
+
+  // Login success: get token + userId from modal
+  const handleLoginSuccess = (t: string, uid: string) => {
+    setToken(t);
+    setUserId(uid);
+    setShowLogin(false);
+    if (showWelcome) {
+      setShowWelcome(false);
+      createNewChat();
+    }
+  };
+
+  const handleLogout = () => {
+    setToken(null);
+    setUserId(null);
+    setShowWelcome(true);
+      // clean localStorage
+  setStored("token", null);
+  setStored("userId", null);
+  setStored("activeIndex", null);
+  clearChats();
+
+
+  };
+
+  /** Wrap sendMessage to include the active index in the payload */
+  const sendWithIndex = (message: string) => {
+    // If your hook supports options, this forwards the selected index.
+    // Adjust the key name ("index") to match your backend if needed.
+    return (sendMessage as any)(message,  activeIndex );
+  };
 
   return (
-    <div style={{ maxWidth: 720, margin: "0 auto", padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700 }}>Hello, {userId}</h1>
-        <button onClick={logout} style={{ textDecoration: "underline", fontSize: 14 }}>
-          Logout
-        </button>
-      </div>
+    <div className="h-screen flex flex-col bg-gray-50" dir="ltr">
+      <HeaderBar
+        isAuthed={isAuthed}
+        onLoginClick={() => setShowLogin(true)}
+        onLogoutClick={handleLogout}
+        onIndexesClick={() => setShowIndexes(true)}
+        rightExtra={
+          isAuthed ? (
+            <IndexSelect
+              token={token}
+              value={activeIndex}
+              onChange={setActiveIndex}
+              reloadKey={indexesVersion}   // <-- triggers re-fetch
+            />
+          ) : null
+        }
+      />
 
-      <section style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 16, marginBottom: 24 }}>
-        <h2 style={{ fontWeight: 600, marginBottom: 12 }}>Your Indexes</h2>
-
-        {indexes.length === 0 ? (
-          <div style={{ color: "#6b7280", fontSize: 14 }}>No indexes yet</div>
-        ) : (
-          <ul style={{ paddingLeft: 20 }}>
-            {indexes.map((ix) => (
-              <li key={ix} style={{ display: "flex", alignItems: "center", gap: 8, margin: "6px 0" }}>
-                <span style={{ fontFamily: "monospace" }}>{ix}</span>
-                {ix !== "wikipedia" && (
-                  <button
-                    onClick={() => onRemoveIndex(ix)}
-                    style={{ fontSize: 12, border: "1px solid #e5e7eb", padding: "4px 8px", borderRadius: 6 }}
-                  >
-                    remove
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <input
-            placeholder="new index name"
-            value={newIndex}
-            onChange={(e) => setNewIndex(e.target.value)}
-            style={{ flex: 1, border: "1px solid #e5e7eb", borderRadius: 8, padding: "8px 10px" }}
-          />
-          <button
-            onClick={onAddIndex}
-            style={{ background: "#16a34a", color: "white", borderRadius: 8, padding: "8px 12px" }}
-          >
-            Add
-          </button>
+      {showWelcome ? (
+        <div className="flex-1">
+          <WelcomeScreen onStartChat={handleStartChat} />
         </div>
-      </section>
+      ) : (
+        <div className="flex flex-1">
+          <ChatSidebar
+            chats={chats}
+            activeChat={activeChat}
+            onNewChat={createNewChat}
+            onSelectChat={selectChat}
+            onDeleteChat={deleteChat}
+          />
+          <ChatInterface
+            activeChat={activeChat}
+            isLoading={isLoading}
+            onSendMessage={sendWithIndex}   // <-- send with the active index
+            onRateMessage={rateMessage}
+          />
+        </div>
+      )}
 
-      {/* כאן בהמשך נשתול Dropdown לבחירת אינדקס לצ'אט/חיפוש */}
+      <LoginModal
+        open={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSuccess={handleLoginSuccess} // (token, userId)
+      />
+
+      {/* Show Indexes only if user is authenticated */}
+      {isAuthed && (
+        <IndexesDrawer
+          open={showIndexes}
+          onClose={() => setShowIndexes(false)}
+          token={token}
+          userId={userId}
+          onIndexesChanged={notifyIndexesChanged}  // <-- notify App on changes
+        />
+      )}
     </div>
   );
 }

@@ -106,20 +106,46 @@ def create_index_if_not_exists(index_name: str) -> bool:
 # ----------------------------------------
 def add_documents_to_index(index_name: str, documents: list[dict]) -> bool:
     """
-    מוסיף מסמכים לאינדקס. כל מסמך הוא מבנה מסוג:
-    {'title': 'Paris', 'text': 'Capital of France'}
+    מוסיף מסמכים לאינדקס ומדפיס אם נוצרו בפועל.
     """
     try:
         create_index_if_not_exists(index_name)
+        success_count = 0
+        fail_count = 0
+
         for doc in documents:
-            client.index(index=index_name, id=doc.get("title"), body=doc)
+            try:
+                res = client.index(index=index_name, id=doc.get("title"), body=doc)
+                # בדיקה לפי התשובה מהשרת
+                result = res.get("result", "")
+                if result in ["created", "updated"]:
+                    success_count += 1
+                else:
+                    fail_count += 1
+                    print(f"⚠️  Failed to insert doc '{doc.get('title')}', server result: {result}")
+            except Exception as e:
+                fail_count += 1
+                print(f"❌ Error inserting document '{doc.get('title')}': {e}")
+
         client.indices.refresh(index=index_name)
-        print(f"✅ Added {len(documents)} documents to index '{index_name}'")
-        return True
+
+        # בדיקה כמה באמת יש באינדקס
+        count_response = client.count(index=index_name)
+        total_docs = count_response["count"]
+
+        print(f"✅ Added {success_count} documents, failed {fail_count}.")
+        print(f"📦 Total documents currently in index '{index_name}': {total_docs}")
+
+        # אם נכשלו מסמכים — הסבר
+        if fail_count > 0:
+            print("⚠️ חלק מהמסמכים לא נכנסו לאינדקס. ייתכן שהייתה בעיה בהרשאות, "
+                  "חסימת כתיבה (read-only cluster block), או שם אינדקס לא תקין.")
+
+        return success_count > 0 and fail_count == 0
+
     except Exception as e:
         print(f"❌ Error indexing documents to '{index_name}': {e}")
         raise
-
 
 # ----------------------------------------
 # Delete an existing index
