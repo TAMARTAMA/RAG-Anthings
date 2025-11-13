@@ -1,7 +1,7 @@
 from typing import Optional
 from app.models.types_chat import MessageRateRequest, MessageAddRequest,RemoveIndexRequest
 from app.services.process_question import process_asking
-from app.services.chat_history import update_rate, create_new_chat, add_message_to_chat,get_chat_by_id
+from app.services.chat_history import update_rate, create_new_chat, add_message_to_chat,get_chat_by_id,delete_chat_by_id
 from app.services.search_service import add_documents_to_index,create_index_if_not_exists,delete_index
 from app.services.user_service import add_index_to_user,remove_index_from_user
 from fastapi import APIRouter, Response, Header, Query
@@ -18,10 +18,17 @@ router = APIRouter()
 @router.post("/add")
 def ask(req: MessageAddRequest):
     time_started = time.time()
-
+    print(req)
     answer_obj, keywords_list, search_res = process_asking(req.request, req.index)
+    if not isinstance(answer_obj, dict) or "text" not in answer_obj:
+        print("LLM ERROR →", answer_obj)
+        return {
+            "status": "error",
+            "message": "LLM failed to generate an answer",
+            "details": answer_obj
+        }
     answer_text = answer_obj["text"]
-
+    print(answer_obj)
     linksForMessage = []
     hits = search_res.get("results", search_res) if isinstance(search_res, dict) else search_res
 
@@ -196,3 +203,16 @@ def get_chat(chat_id: str):
         raise HTTPException(status_code=404, detail="Chat not found")
     return chat
    
+@router.delete("/{chat_id}")
+def delete_chat(chat_id: str, current: str = Depends(verify_token)):
+    chat = get_chat_by_id(chat_id)
+    if not chat:
+        raise HTTPException(404, "Chat not found")
+
+    if chat["userId"] != current:
+        raise HTTPException(403, "Not allowed")
+
+    if delete_chat_by_id(chat_id):
+        return {"status": "deleted", "chatId": chat_id}
+
+    raise HTTPException(500, "Failed to delete chat")

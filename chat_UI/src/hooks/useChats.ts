@@ -4,7 +4,8 @@ import {
   sendMessageToAPI, 
   rateMessageToAPI, 
   getChatHistory,
-  getSingleChat 
+  getSingleChat ,
+  deleteChatFromServer
 } from "../services/api";
 
 export const useChats = (userId?: string | null, token?: string | null) => { 
@@ -168,13 +169,21 @@ export const useChats = (userId?: string | null, token?: string | null) => {
   const selectChat = useCallback((chat: Chat) => setActiveChat(chat), []);
 
   const deleteChat = useCallback(
-    (chatId: string) => {
-      setChats((prev) => prev.filter((chat) => chat.id !== chatId));
-      if (activeChat?.id === chatId) {
-        setActiveChat(null);
+    async (chatId: string) => {
+      if (!token) return;
+      try {
+        // מחיקה מהשרת
+        await deleteChatFromServer(chatId, token);
+        // מחיקה מקומית אחרי הצלחה
+        setChats((prev) => prev.filter((chat) => chat.id !== chatId));
+        if (activeChat?.id === chatId) {
+          setActiveChat(null);
+        }
+      } catch (err) {
+        console.error("Failed to delete chat:", err);
       }
     },
-    [activeChat]
+    [activeChat, token]
   );
 
   function clearChats() {

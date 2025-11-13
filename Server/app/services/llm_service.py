@@ -12,7 +12,14 @@ def send_data_to_server_LLM(url: str, question: str, system_prompt: str):
 
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=None)
-        
+
+        print("=== RAW RESPONSE STATUS ===")
+        print(response.status_code)
+
+        print("=== RAW RESPONSE TEXT ===")
+        print(response.text)  # <<< הדבר הכי חשוב לאבחון
+
+        # עכשיו ננסה לפרסר JSON
         return response.json()
     except Exception as e:
         return {"error": f"Error sending LLM application: {e}"}

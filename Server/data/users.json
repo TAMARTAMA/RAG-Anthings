@@ -76,7 +76,9 @@
     "password_hash": "$2b$12$XYkHvOrY5ZvAEfF8Jei1/.caY8kIS/kVaNRLwtGkKJS.E.Xud3Z/e",
     "indexs": [
       "wikipedia",
-      "tamar"
+      "tamar",
+      "tamar2",
+      "sql"
     ]
   }
 }

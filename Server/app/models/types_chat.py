@@ -18,7 +18,7 @@ class MessageAddRequest(BaseModel):
 
 class MessageRateRequest(BaseModel):
     userId: str
-    messageId: int
+    messageId: str
 
     rating: Optional[Literal["like", "dislike", None]] = None
 

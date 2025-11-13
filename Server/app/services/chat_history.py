@@ -109,10 +109,20 @@ def get_chat_by_id(chat_id: str):
                 return c
     return None
 
+def delete_chat_by_id(chat_id: str) -> bool:
 
+    chats = []
+    deleted = False
 
-if __name__ == "__main__":
+    with jsonlines.open(CHATS_FILE, "r") as reader:
+        for c in reader:
+            if c.get("id") == chat_id:
+                deleted = True  
+            else:
+                chats.append(c)
 
- 
-    user_chats = get_chats_by_user("aaa")
-    print(user_chats)
+    with jsonlines.open(CHATS_FILE, "w") as writer:
+        for c in chats:
+            writer.write(c)
+
+    return deleted

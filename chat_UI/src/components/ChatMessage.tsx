@@ -24,18 +24,16 @@ useEffect(() => {
       if (!isUser && message.content && !message.probability) {
         try {
           const res = await getProbabilityFromServer(
-            message.replyTo || "User question", // או תשני בהתאם לשאלה שלך
+            message.replyTo || "User question", 
             message.content
           );
 
           if (res.probability !== undefined) {
-            // נעדכן את ההסתברות בתוך האובייקט message (אם יש סטייט למעלה, נשתמש בו)
             message.probability = res.probability;
-            // נכריח רנדר מחדש אם צריך
             setRerender((r) => r + 1);
           }
         } catch (err) {
-          console.error("❌ Failed to get probability:", err);
+          console.error(" Failed to get probability:", err);
         }
       }
     };
@@ -79,14 +77,14 @@ useEffect(() => {
             <div className="mt-2 space-y-1">
               {message.links.map((link, idx) => (
                 <div key={idx} className="text-xs flex items-center gap-2">
-                  <span className="font-medium text-gray-700">{link.title}:</span>
+                  <span className="font-medium text-gray-700">{link.title}</span>
                   <a
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
                   >
-                    {link.url}
+                    {link.url!= "No URL" ? link.url :""}
                   </a>
                 </div>
               ))}
@@ -102,7 +100,9 @@ useEffect(() => {
                 className="flex items-center gap-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-full px-3 py-1 shadow-sm"
                 title="Answer confidence"
               >
-                <span className="text-blue-600">{message.probability.toFixed(1)}%</span>
+<span className="text-blue-600">
+  {((message.probability / 10) * 100).toFixed(0)}%
+</span>
                 <span className="text-gray-400">confidence</span>
               </div>
             )}

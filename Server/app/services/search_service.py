@@ -17,7 +17,7 @@ def send_data_to_server_search(keywords: list, index_name: str):
     מבצע חיפוש לפי רשימת מילות מפתח באינדקס מסוים.
     """
     body = {
-        "size": 10,
+        "size": 8,
         "query": {
             "bool": {
                 "should": [
@@ -47,7 +47,8 @@ def send_data_to_server_search(keywords: list, index_name: str):
             {
                 "title": hit["_source"].get("title", "No Title"),
                 "score": hit.get("_score", 0),
-                "url": hit["_source"].get("url", "No URL")
+                "url": hit["_source"].get("url", "No URL"),
+                "text" :hit["_source"].get("text","No Text")
             }
             for hit in hits
         ]

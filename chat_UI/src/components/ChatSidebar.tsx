@@ -17,18 +17,20 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onSelectChat,
   onDeleteChat,
 }) => {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) return 'today';
-    if (days === 1) return 'yesterday';
-    if (days < 7) return `${days} days`;
-    return date.toLocaleDateString('he-IL');
-  };
-
+ const formatDate = (dateStr: string) => {
+  if (!dateStr) return "unknown";
+  const date = new Date(dateStr);
+  // אם התאריך לא תקין
+  if (isNaN(date.getTime())) return "unknown";
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days} days`;
+  return date.toLocaleDateString('he-IL');
+};
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}

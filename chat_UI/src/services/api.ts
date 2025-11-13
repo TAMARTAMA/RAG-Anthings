@@ -175,3 +175,15 @@ export async function getSingleChat(chatId: string, token: string) {
 
   return res.json();
 }
+export async function deleteChatFromServer(chatId: string, token: string) {
+  const res = await fetch(`${PORT_MAIN_SERVER}/api/message/${chatId}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to delete chat");
+  }
+  return res.json(); // למשל {status: "deleted", chatId: "..."}
+}

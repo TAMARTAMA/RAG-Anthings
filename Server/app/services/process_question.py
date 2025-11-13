@@ -8,7 +8,7 @@ def process_asking(question: str ,index_name:str):
     print(f" Keywords extracted: {keywords}")
     keywords_list = keywords.get("text", "").split(", ")
     if not keywords_list or keywords_list == [""]:
-        return {"text":"No keywords were found that match your question."},keywords
+        return {"text":"No keywords were found that match your question."},keywords,[]
     keywords_list.append(question)
     search_results = send_data_to_server_search(keywords_list,index_name)
     docs_text = "\n\n".join(
@@ -18,4 +18,7 @@ def process_asking(question: str ,index_name:str):
     ]
     )
     system_prompt_search_q_filled = system_prompt_search_q.format(docs=docs_text)
-    return send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_search_q_filled),keywords_list,search_results
+    print("_____________________________________")
+    # print(system_prompt_search_q_filled)
+    answer = send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_search_q_filled)
+    return answer,keywords_list,search_results
