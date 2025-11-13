@@ -1,7 +1,7 @@
 import { User } from "lucide-react";
 
 // const PORT_MAIN_SERVER = "https://television-man-recommendations-cast.trycloudflare.com";
-const PORT_MAIN_SERVER = "http://localhost:8004";
+const PORT_MAIN_SERVER = import.meta.env.VITE_PORT_MAIN_SERVER;
 
 export type AuthUser = { id: string; indexs: string[] };
 export type AuthResp = { user: AuthUser; access_token: string; token_type: string };
@@ -10,7 +10,7 @@ export async function signup(userId: string, password: string): Promise<AuthResp
   const r = await fetch(`${PORT_MAIN_SERVER}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, password })
+    body: JSON.stringify({ "userId":userId,"password": password })
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
