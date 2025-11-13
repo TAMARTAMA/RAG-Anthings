@@ -55,7 +55,7 @@ export const useChats = (userId?: string | null, token?: string | null) => {
   const createNewChat = useCallback(() => {
     const now = new Date().toISOString();
     const newChat: Chat = {
-      id: "pending",      // ← מזהה זמני עד שהשרת יחזיר chatId אמיתי
+      id: "pending",      //Temporary ID until the server returns a real chatId
       title: "New conversation",
       messages: [],
       createdAt: now,
@@ -100,7 +100,7 @@ export const useChats = (userId?: string | null, token?: string | null) => {
       setIsLoading(true);
 
       try {
-        // אם ה־chat עדיין pending, שולחים null
+        // If the chat is still pending, send null
         const chatIdToSend =
           activeChat.id === "pending" ? null : activeChat.id;
 
@@ -111,10 +111,18 @@ export const useChats = (userId?: string | null, token?: string | null) => {
           chatIdToSend
         );
 
-        // לאחר מכן, טוענים מהשרת רק את הצ'אט הספציפי
-        const updatedChat = await getSingleChat(chatId, token!);
+       // Then, load only the specific chat from the server
+       const updatedChatFromServer = await getSingleChat(chatId, token!);
 
-        // אם זה היה chat חדש → מחליפים את "pending" ב־chatId אמיתי
+       // אם updatedAt מהשרת null → נשמור את הערך המקומי
+       const updatedChat = {
+         ...updatedChatFromServer,
+         updatedAt: updatedChatFromServer.updatedAt || localChatUpdate.updatedAt,
+       };
+      //const updatedChat = await getSingleChat(chatId, token!);
+       setActiveChat(updatedChat);
+
+        // If this was a new chat → replace "pending" with a real chatId
         if (activeChat.id === "pending") {
           setChats((prev) =>
             prev.map((c) =>
@@ -140,8 +148,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
     },
     [activeChat, userId, token]
   );
-
-  // --- דירוג הודעה ---
   const rateMessage = useCallback(
     async (messageId: string, rating: "like" | "dislike" | null) => {
       if (!activeChat) return;
@@ -171,19 +177,23 @@ export const useChats = (userId?: string | null, token?: string | null) => {
   const deleteChat = useCallback(
     async (chatId: string) => {
       if (!token) return;
+  
+      // Immediate deletion from the state
+      const prevChats = chats;
+      const chatWasActive = activeChat?.id === chatId;
+      setChats(prev => prev.filter(chat => chat.id !== chatId));
+      if (chatWasActive) setActiveChat(null);
+  
       try {
-        // מחיקה מהשרת
         await deleteChatFromServer(chatId, token);
-        // מחיקה מקומית אחרי הצלחה
-        setChats((prev) => prev.filter((chat) => chat.id !== chatId));
-        if (activeChat?.id === chatId) {
-          setActiveChat(null);
-        }
       } catch (err) {
         console.error("Failed to delete chat:", err);
+        // Recovery in case of failure
+        setChats(prevChats);
+        if (chatWasActive) setActiveChat(prevChats.find(c => c.id === chatId) || null);
       }
     },
-    [activeChat, token]
+    [chats, activeChat, token]
   );
 
   function clearChats() {

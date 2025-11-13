@@ -61,7 +61,8 @@
     "id": "nnn",
     "password_hash": "$2b$12$N1yCCDBLr.UdlTGKtx9W1.qAEaTpQMteQWsZXKPyFd0b/.hQxOrxy",
     "indexs": [
-      "wikipedia"
+      "wikipedia",
+      "nn"
     ]
   },
   "tamar123": {
@@ -79,6 +80,22 @@
       "tamar",
       "tamar2",
       "sql"
+    ]
+  },
+  "tamar": {
+    "id": "tamar",
+    "password_hash": "$2b$12$9lxqBMZvH6se4EiuHP.Vi.Kq8q7xW2FA6h.6smCsMJfojFZkOPliC",
+    "indexs": [
+      "wikipedia"
+    ]
+  },
+  "aaat": {
+    "id": "aaat",
+    "password_hash": "$2b$12$UUWHj3InKi3UKZQKkOHQ9.yZFl4d7441kFRZ3i8J/EwnohI4uf.1G",
+    "indexs": [
+      "wikipedia",
+      "rr",
+      "viruscumpoter"
     ]
   }
 }

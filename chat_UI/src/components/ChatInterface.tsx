@@ -57,67 +57,77 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
-      {/* Header */}
-      <div className="border-b border-gray-200 p-4 bg-white text-right">
-        <h2 className="text-lg font-semibold text-gray-900">{activeChat.title}</h2>
-        <p className="text-sm text-gray-500">{activeChat.messages.length} messages</p>
-      </div>
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-3xl relative">
+        <div className="flex-1 flex flex-col bg-white relative">
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-1 px-4 py-2">
-        {activeChat.messages.map((message) => (
-          <ChatMessage key={message.id} message={message} onRate={onRateMessage} />
-        ))}
-
-        {isLoading && (
-          <div className="flex gap-4 p-4">
-            <Loader2 className="w-5 h-5 text-gray-600 animate-spin" />
-            <p className="text-sm text-gray-600">BOT&lt;NET writing...</p>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Area */}
-      <div className="border-t border-gray-200 bg-gray-50 p-4">
-        <form
-          onSubmit={handleSubmit}
-          className="flex items-end gap-2 bg-white border border-gray-300 rounded-2xl shadow-sm p-2 focus-within:ring-2 focus-within:ring-blue-500"
-        >
-          {/* כפתורי שליחה והקלטה בצד ימין */}
-          <div className="flex items-center gap-2 pr-1">
-            <VoiceRecorder
-              inputRef={inputRef}
-              onTranscription={(text) => setInputMessage(text)}
-            />
-
-            <button
-              type="submit"
-              disabled={!inputMessage.trim() || isLoading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white p-3 rounded-xl transition-colors duration-200"
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
-            </button>
+          {/* Header */}
+          <div className="border-b border-gray-200 p-4 bg-white text-right">
+            <h2 className="text-lg font-semibold text-gray-900">{activeChat.title}</h2>
+            <p className="text-sm text-gray-500">{activeChat.messages.length} messages</p>
           </div>
 
-          {/* שדה הקלט */}
-          <textarea
-            ref={inputRef}
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask BOT<NET> any question..."
-            className="flex-1 resize-none outline-none px-3 py-2 text-right text-gray-900 placeholder-gray-400 rounded-xl bg-transparent"
-            rows={1}
-          />
-        </form>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto space-y-1 px-4 py-2 pb-32">
+            {activeChat.messages.map((message) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                onRate={onRateMessage}
+              />
+            ))}
+
+            {isLoading && (
+              <div className="flex gap-4 p-4">
+                <Loader2 className="w-5 h-5 text-gray-600 animate-spin" />
+                <p className="text-sm text-gray-600">BOT&lt;NET writing...</p>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+<div className="fixed bottom-0  bg-white p-4 flex justify-center right-0" style={{ left: '320px' }}>
+            <div className="w-full max-w-3xl ">
+              <form
+                onSubmit={handleSubmit}
+                className="flex items-end gap-2 bg-white border border-gray-300 rounded-2xl shadow-sm p-2 focus-within:ring-2 focus-within:ring-blue-500"
+              >
+                <div className="flex items-center gap-2 pr-1">
+                  <VoiceRecorder
+                    inputRef={inputRef}
+                    onTranscription={(text) => setInputMessage(text)}
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={!inputMessage.trim() || isLoading}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white p-3 rounded-xl transition-colors duration-200"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+
+                <textarea
+                  ref={inputRef}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask BOT<NET> any question..."
+                  className="flex-1 resize-none outline-none px-3 py-2 text-right text-gray-900 placeholder-gray-400 rounded-xl bg-transparent"
+                  rows={1}
+                />
+              </form>
+            </div>
+          </div>
+
+        </div>
       </div>
-    </div>
+     </div>
   );
 };
 
