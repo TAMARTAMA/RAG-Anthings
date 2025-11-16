@@ -1,10 +1,14 @@
+import torch
 from app.services.llm_service import send_data_to_server_LLM
 from app.services.search_service import send_data_to_server_search
 from app.models.prompts import system_prompt_keywords, system_prompt_search_q
 from app.config import SERVER_MODEL_URL
 from sentence_transformers import CrossEncoder
 
-reranker_model = CrossEncoder("jinaai/jina-reranker-v2-base-multilingual", trust_remote_code=True)
+reranker_model = CrossEncoder(
+    "jinaai/jina-reranker-v2-base-multilingual",
+    trust_remote_code=True,
+    device="cuda:0" )
 
 def process_asking(question: str ,index_name:str):
     keywords = send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_keywords)
@@ -17,7 +21,8 @@ def process_asking(question: str ,index_name:str):
     results = search_results.get("results", [])
     for r in results:
         passages = r['text'].split('.')
-        ranks = reranker_model.rank(question, passages)
+        with torch.no_grad():  
+            ranks = reranker_model.rank(question, passages)
         txts = []
         for rank in ranks[:3]:
             txts.append(passages[rank['corpus_id']])
@@ -34,4 +39,5 @@ def process_asking(question: str ,index_name:str):
     print("_____________________________________")
     # print(system_prompt_search_q_filled)
     answer = send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_search_q_filled)
+    torch.cuda.empty_cache()
     return answer,keywords_list,search_results
