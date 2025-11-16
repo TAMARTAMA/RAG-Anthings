@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal, Optional
+from typing import Literal, Optional, List, Dict, Any
 from datetime import datetime
 
 class ChatMessage(BaseModel):
@@ -13,13 +13,18 @@ class ChatMessage(BaseModel):
 class MessageAddRequest(BaseModel):
     request: str  
     userId: str
+    index: str
+    chatId: str | None = None
 
 class MessageRateRequest(BaseModel):
     userId: str
-    messageId: int
+    messageId: str
 
     rating: Optional[Literal["like", "dislike", None]] = None
 
 class ProbabilityRequest(BaseModel):
     question: str
     answer: str
+class RemoveIndexRequest(BaseModel):
+    index: str
+    UserId: str

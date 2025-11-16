@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Mic, Square } from "lucide-react";
+const TRANSCRIBE_URL = import.meta.env.VITE_TRANSCRIBE_URL;
+
 
 interface VoiceRecorderProps {
   inputRef: React.RefObject<HTMLTextAreaElement>;
@@ -29,7 +31,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         await uploadAndTranscribe(blob);
 
-        // ✅ החזרת פוקוס לתיבת הטקסט אחרי סיום ההקלטה
         if (inputRef.current) {
           inputRef.current.focus();
         }
@@ -38,7 +39,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       recorder.start();
       setIsRecording(true);
     } catch (err) {
-      console.error("שגיאה בגישה למיקרופון:", err);
+      console.error("Microphone access error:", err);
     }
   };
 
@@ -54,24 +55,25 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       const formData = new FormData();
       formData.append("file", blob, "recording.webm");
 
-      const response = await fetch("http://192.168.50.3:7005/transcribe", {
+      const response = await fetch(`${TRANSCRIBE_URL}`, {
         method: "POST",
-        body: formData,
+        body: formData 
       });
+
 
       const data = await response.json();
       if (data.text) onTranscription(data.text);
     } catch (err) {
-      console.error("שגיאה בשליחת ההקלטה:", err);
+      console.error("Error sending recording:", err);
     }
   };
 
   return (
     <button
       type="button"
-      // ✅ רק לחיצה בעכבר — אין תגובה ללחיצות מקלדת
+
       onClick={isRecording ? stopRecording : startRecording}
-      onKeyDown={(e) => e.preventDefault()} // מונע Enter או Space מהפעלת הכפתור
+      onKeyDown={(e) => e.preventDefault()} 
       className={`p-3 rounded-xl transition-colors duration-200 ${
         isRecording ? "bg-red-600" : "bg-gray-200 hover:bg-gray-300"
       }`}
