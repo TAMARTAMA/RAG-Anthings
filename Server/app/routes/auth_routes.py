@@ -24,10 +24,13 @@ class IndexIn(BaseModel):
 def current_user_id(authorization: Optional[str] = Header(None)) -> str:
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(401, "missing token")
-    uid = verify_token(authorization.split()[1])
+
+    uid = verify_token(authorization)   
     if not uid:
         raise HTTPException(401, "invalid/expired token")
+
     return uid
+
 
 @router.post("/signup")
 def signup(body: SignupIn):
