@@ -37,7 +37,6 @@ def process_asking(question: str ,index_name:str):
     print(docs_text)
     system_prompt_search_q_filled = system_prompt_search_q.format(docs=docs_text)
     print("_____________________________________")
-    # print(system_prompt_search_q_filled)
     answer = send_data_to_server_LLM(SERVER_MODEL_URL, question, system_prompt_search_q_filled)
     torch.cuda.empty_cache()
     return answer,keywords_list,search_results
