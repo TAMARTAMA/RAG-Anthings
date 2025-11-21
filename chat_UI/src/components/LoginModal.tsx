@@ -4,7 +4,6 @@ import { login, signup } from "../services/api";
 type Props = {
   open: boolean;
   onClose: () => void;
-  // Return both token and userId to App
   onSuccess: (token: string, userId: string) => void;
 };
 
@@ -29,7 +28,6 @@ export default function LoginModal({ open, onClose, onSuccess }: Props) {
         ? await login(userId.trim(), password)
         : await signup(userId.trim(), password);
 
-      // Persist for the rest of the app
       localStorage.setItem("token", resp.access_token);
       localStorage.setItem("userId", resp.user.id);
 
