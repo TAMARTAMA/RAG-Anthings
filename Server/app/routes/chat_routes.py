@@ -20,7 +20,6 @@ router = APIRouter()
 
 @router.post("/add")
 def ask(req: MessageAddRequest):
-    """Handle a new user message: process question, get answer, and save chat."""
     time_started = time.time()
     print(req)
 
@@ -49,21 +48,18 @@ def ask(req: MessageAddRequest):
 
 @router.get("/history")
 def get_user_history(userId: str = Query(...), authorization: str = Header(None)):
-    """Return all chats for a given user."""
     chats = get_chats_by_user(userId)
     return {"userId": userId, "chats": chats}
 
 
 @router.post("/rate")
 def rate(req: MessageRateRequest):
-    """Update message rating."""
     update_rate(req.messageId, req.rating)
     return {"status": "ok"}
 
 
 @router.options("/{path:path}")
 def options_handler(path: str):
-    """Handle CORS preflight requests."""
     return Response(status_code=200)
 
 
@@ -73,7 +69,6 @@ async def add_index(
     index_name: str = Form(...),
     files: Optional[list[UploadFile]] = File(None)
 ):
-    """Create a new OpenSearch index and link it to the user."""
     documents = []
     if files is None:
         files = []
@@ -105,7 +100,7 @@ async def add_index(
             else:
                 create_index_if_not_exists(index_name)
         except Exception as es_err:
-            print(f"❌ OpenSearch error while creating index '{index_name}': {es_err}")
+            print(f" OpenSearch error while creating index '{index_name}': {es_err}")
             raise HTTPException(status_code=500, detail=f"Failed to create index '{index_name}': {str(es_err)}")
 
         user_data = add_index_to_user(user_id, index_name)
@@ -119,13 +114,12 @@ async def add_index(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ General error in add_index: {type(e).__name__} - {e}")
+        print(f" General error in add_index: {type(e).__name__} - {e}")
         raise HTTPException(status_code=500, detail=f"Unexpected error while creating index '{index_name}': {str(e)}")
 
 
 @router.post("/remove_index")
 async def remove_index(data: RemoveIndexRequest):
-    """Delete an OpenSearch index and unlink it from the user."""
     index_name = data.index
     user_id = data.UserId
 
@@ -149,7 +143,6 @@ async def remove_index(data: RemoveIndexRequest):
 
 @router.get("/chat/{chat_id}")
 def get_chat(chat_id: str):
-    """Return a single chat by ID."""
     chat = get_chat_by_id(chat_id)
     if chat is None:
         raise HTTPException(status_code=404, detail="Chat not found")
@@ -158,7 +151,6 @@ def get_chat(chat_id: str):
 
 @router.delete("/{chat_id}")
 def delete_chat(chat_id: str, current: str = Depends(verify_token)):
-    """Delete a chat (only if owned by current user)."""
     chat = get_chat_by_id(chat_id)
     if not chat:
         raise HTTPException(404, "Chat not found")
