@@ -1,5 +1,5 @@
 {
-  "model_dir": "google/gemma-3-1b-it",
+  "model_dir": "google/gemma-3-4b-it",
   "device_map": "auto",
   "default_max_new_tokens": 1024,
   "default_temperature": 1.0,
