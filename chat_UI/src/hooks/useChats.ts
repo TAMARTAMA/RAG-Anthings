@@ -13,7 +13,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // --- טוען היסטוריה ---
   useEffect(() => {
     const fetchChats = async () => {
       if (!userId || !token) return;
@@ -51,11 +50,10 @@ export const useChats = (userId?: string | null, token?: string | null) => {
     fetchChats();
   }, [userId, token]);
 
-  // --- יצירת שיחה חדשה ---
   const createNewChat = useCallback(() => {
     const now = new Date().toISOString();
     const newChat: Chat = {
-      id: "pending",      //Temporary ID until the server returns a real chatId
+      id: "pending",      
       title: "New conversation",
       messages: [],
       createdAt: now,
@@ -66,7 +64,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
     return newChat;
   }, []);
 
-  // --- שליחת הודעה ---
   const sendMessage = useCallback(
     async (content: string, index?: any) => {
       if (!activeChat || !content.trim()) return;
@@ -81,7 +78,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
         replyTo: null,
       };
 
-      // עדכון מקומי מיידי
       const localChatUpdate: Chat = {
         ...activeChat,
         messages: [...activeChat.messages, userMessage],
@@ -100,7 +96,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
       setIsLoading(true);
 
       try {
-        // If the chat is still pending, send null
         const chatIdToSend =
           activeChat.id === "pending" ? null : activeChat.id;
 
@@ -111,18 +106,14 @@ export const useChats = (userId?: string | null, token?: string | null) => {
           chatIdToSend
         );
 
-       // Then, load only the specific chat from the server
        const updatedChatFromServer = await getSingleChat(chatId, token!);
 
-       // אם updatedAt מהשרת null → נשמור את הערך המקומי
        const updatedChat = {
          ...updatedChatFromServer,
          updatedAt: updatedChatFromServer.updatedAt || localChatUpdate.updatedAt,
        };
-      //const updatedChat = await getSingleChat(chatId, token!);
        setActiveChat(updatedChat);
 
-        // If this was a new chat → replace "pending" with a real chatId
         if (activeChat.id === "pending") {
           setChats((prev) =>
             prev.map((c) =>
@@ -130,7 +121,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
             )
           );
         } else {
-          // צ'אט קיים
           setChats((prev) =>
             prev.map((c) =>
               c.id === chatId ? updatedChat : c
@@ -178,7 +168,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
     async (chatId: string) => {
       if (!token) return;
   
-      // Immediate deletion from the state
       const prevChats = chats;
       const chatWasActive = activeChat?.id === chatId;
       setChats(prev => prev.filter(chat => chat.id !== chatId));
@@ -188,7 +177,6 @@ export const useChats = (userId?: string | null, token?: string | null) => {
         await deleteChatFromServer(chatId, token);
       } catch (err) {
         console.error("Failed to delete chat:", err);
-        // Recovery in case of failure
         setChats(prevChats);
         if (chatWasActive) setActiveChat(prevChats.find(c => c.id === chatId) || null);
       }
