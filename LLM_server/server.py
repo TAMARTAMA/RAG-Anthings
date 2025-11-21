@@ -4,16 +4,14 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, Gemma3ForCondition
 from pathlib import Path
 import torch, json, time, os
 
-# ===== Load Config =====
 CFG_PATH = Path(os.environ.get("LLM_CFG", Path(__file__).with_name("config-1b.json")))
 cfg = json.loads(Path(CFG_PATH).read_text(encoding="utf-8"))
 
 MODEL_DIR = cfg["model_dir"]
 DEVICE_MAP = cfg.get("device_map", "auto")
 
-quant_mode = cfg.get("quantization", "none")  # "none" / "int8"
+quant_mode = cfg.get("quantization", "none")  
 
-# ===== FastAPI Init =====
 app = FastAPI(title="LLM Server (Gemma 3 4B IT)")
 _model = None
 _tok = None
@@ -28,7 +26,6 @@ class GenerateOut(BaseModel):
     tokens: int
     duration_s: float
 
-# --- Schemas for /probabilities ---
 class ProbabilitiesIn(BaseModel):
     prompt: str
 
@@ -46,7 +43,6 @@ def load_model():
     print(f"[LOAD] Loading model from {MODEL_DIR} (quant={quant_mode})...", end="", flush=True)
 
     if quant_mode == "int8":
-        # === INT8 MODE ===
         quant_cfg = BitsAndBytesConfig(load_in_8bit=True)
         _model = AutoModelForCausalLM.from_pretrained(
             MODEL_DIR,
@@ -56,7 +52,6 @@ def load_model():
             local_files_only=True
         ).eval()
     else:
-        # === BF16 ===
         _model = AutoModelForCausalLM.from_pretrained(
             MODEL_DIR,
             device_map=DEVICE_MAP,
@@ -100,7 +95,6 @@ def generate(req: GenerateIn):
     torch.cuda.empty_cache()
     return GenerateOut(text=text, tokens=gen_ids.numel(), duration_s=dur)
 
-# --- Endpoint: full next-token distribution as [{token, prob}] ---
 @app.post("/probabilities", response_model=ProbabilitiesOut)
 def probabilities(req: ProbabilitiesIn):
     if not isinstance(req.prompt, str) or not req.prompt.strip():
