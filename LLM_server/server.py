@@ -4,7 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, Gemma3ForCondition
 from pathlib import Path
 import torch, json, time, os
 
-CFG_PATH = Path(os.environ.get("LLM_CFG", Path(__file__).with_name("config-1b.json")))
+CFG_PATH = Path(os.environ.get("LLM_CFG", Path(__file__).with_name("config-4b.json")))
 cfg = json.loads(Path(CFG_PATH).read_text(encoding="utf-8"))
 
 MODEL_DIR = cfg["model_dir"]
