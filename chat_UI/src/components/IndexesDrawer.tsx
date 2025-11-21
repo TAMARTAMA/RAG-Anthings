@@ -6,7 +6,7 @@ type Props = {
   onClose: () => void;
   token: string | null;
   userId: string | null;
-  onIndexesChanged?: () => void; // notify parent (App) so IndexSelect can refresh immediately
+  onIndexesChanged?: () => void; 
 };
 
 const PROTECTED_INDEX = "wikipedia";
@@ -22,30 +22,26 @@ export default function IndexesDrawer({
   onClose,
   token,
   userId,
-  onIndexesChanged, // <--- include in props destructuring
+  onIndexesChanged, 
 }: Props) {
   const [items, setItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  // New index: name + staged files + expand toggle
   const [newName, setNewName] = useState("");
   const [stagedNewFiles, setStagedNewFiles] = useState<File[]>([]);
   const [newExpanded, setNewExpanded] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // Existing indexes: staged files per index + expand toggles + uploading state
   const [stagedPerIndex, setStagedPerIndex] = useState<Record<string, File[]>>({});
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [uploadingIndex, setUploadingIndex] = useState<string | null>(null);
 
-  // Delete state
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const canCall = useMemo(() => !!token && !!userId, [token, userId]);
 
-  // hidden inputs for per-row file pickers
   const addNewInputRef = useRef<HTMLInputElement | null>(null);
   const addRowInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -75,7 +71,6 @@ export default function IndexesDrawer({
 
   useEffect(() => { if (open) load(); }, [open, canCall]);
 
-  // ------------- New index handlers -------------
   function handlePickNewFiles(e: React.ChangeEvent<HTMLInputElement>) {
     resetStatus();
     const files = e.target.files ? Array.from(e.target.files) : [];
@@ -90,7 +85,6 @@ export default function IndexesDrawer({
       setStagedNewFiles(prev => [...prev, ...allowed]);
       setNewExpanded(true);
     }
-    // reset the input so the same file can be selected again
     if (addNewInputRef.current) addNewInputRef.current.value = "";
   }
 
@@ -108,7 +102,6 @@ export default function IndexesDrawer({
       setItems(ix);
       setInfo(`Index "${newName.trim()}" created${stagedNewFiles.length ? " and files uploaded" : ""}.`);
 
-      // notify parent so the header selector refreshes immediately
       signalChanged();
 
       setNewName("");
@@ -121,7 +114,6 @@ export default function IndexesDrawer({
     }
   }
 
-  // ------------- Existing index handlers -------------
   function handlePickRowFiles(name: string, e: React.ChangeEvent<HTMLInputElement>) {
     resetStatus();
     const files = e.target.files ? Array.from(e.target.files) : [];
@@ -164,7 +156,6 @@ export default function IndexesDrawer({
       setItems(ix);
       setInfo(`${files.length} file(s) uploaded to "${name}".`);
 
-      // notify parent so the header selector refreshes immediately
       signalChanged();
 
       setStagedPerIndex(prev => ({ ...prev, [name]: [] }));
@@ -188,10 +179,8 @@ export default function IndexesDrawer({
       setItems(ix);
       setInfo(`Index "${name}" deleted.`);
 
-      // notify parent so the header selector refreshes immediately
       signalChanged();
 
-      // cleanup staged state
       setStagedPerIndex(prev => {
         const copy = { ...prev };
         delete copy[name];
