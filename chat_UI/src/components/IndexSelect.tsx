@@ -34,8 +34,7 @@ export default function IndexSelect({ token, value, onChange ,reloadKey}: Props)
         }
     }
     load();
-    // include reloadKey so we re-fetch immediately after changes
-}, [canCall, reloadKey]);  // <-- added reloadKey
+}, [canCall, reloadKey]);  
 
   return (
     <div className="flex items-center gap-2">
