@@ -1,6 +1,5 @@
 import { User } from "lucide-react";
 
-// const PORT_MAIN_SERVER = "https://television-man-recommendations-cast.trycloudflare.com";
 const PORT_MAIN_SERVER = import.meta.env.VITE_PORT_MAIN_SERVER;
 
 export type AuthUser = { id: string; indexs: string[] };
@@ -56,7 +55,6 @@ export async function addIndex(token: string, userId: string, index: string, fil
   return r.json();
 }
 
-
 export async function removeIndex(token: string, index: string, UserId: string) {
   const r = await fetch(`${PORT_MAIN_SERVER}/api/message/remove_index`, {
     method: "POST",
@@ -66,6 +64,7 @@ export async function removeIndex(token: string, index: string, UserId: string) 
   if (!r.ok) throw new Error(await r.text());
   return r.json() as Promise<{ user: AuthUser }>;
 }
+
 export async function rateMessageToAPI(userId: string, messageId: string, rating: 'like' | 'dislike' | null) {
   try {
     const response = await fetch(`${PORT_MAIN_SERVER}/api/message/rate`, {
@@ -102,7 +101,7 @@ export async function sendMessageToAPI(
         request: message,
         userId,
         index,
-        chatId: chatId || null   // ← חשוב: אם "pending" מגיע, שולחים null
+        chatId: chatId || null   
       }),
     });
 
@@ -175,6 +174,7 @@ export async function getSingleChat(chatId: string, token: string) {
 
   return res.json();
 }
+
 export async function deleteChatFromServer(chatId: string, token: string) {
   const res = await fetch(`${PORT_MAIN_SERVER}/api/message/${chatId}`, {
     method: "DELETE",
@@ -185,5 +185,5 @@ export async function deleteChatFromServer(chatId: string, token: string) {
   if (!res.ok) {
     throw new Error("Failed to delete chat");
   }
-  return res.json(); // למשל {status: "deleted", chatId: "..."}
+  return res.json(); 
 }
