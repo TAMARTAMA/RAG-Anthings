@@ -1,12 +1,11 @@
 # Chat-Bot
 Link --> http://103.45.244.105:5174/
-System RAG :
-Building a retrieval engine based on the entire Wikipedia database.
+A robust and customizable RAG system that supports document ingestion, indexing, retrieval, and LLM-based response generation using the gemma3-4b model. 
+The system delivers accurate, source-grounded answers and performs query expansion.
+It integrates with the model through HuggingFace Transformers, applies model refinement through quantization, uses OpenSearch for efficient information retrieval, and incorporates a ranker model to improve answer accuracy. 
+The backend is built using FastAPI.
 
-Using  OpenSearch for accurate retrievals.
+The project focuses on optimizing the RAG pipeline for both speed and accuracy.
+It leverages gemma3-4b and OpenSearch, includes additional optimization techniques such as quantization and strict resource management. 
+The work includes evaluating multiple models, developing a Python backend, and deploying the system in a production-ready environment.
 
-Building pipelines using LangChain for processing questions, expanding queries (query expansion), analyzing data, and generating answers.
-
-Integrating additional Gemma and LLM models to create high-quality answers while managing and documenting JSONL answer history.
-
-Developing a small Agent that analyzes answers, scores computer security, and records performance reports.
